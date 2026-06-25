@@ -1,0 +1,888 @@
+
+
+#design idea:
+#the heap is divided in chunks, which all heave a header defining their size, and the pointer to the previous chunk header
+# defined as such:
+# word           word         word
+#{ptr * prev, bool occupied, int size}
+
+# best fit algorithm searches for the smallest free chunk
+# split chunk on left/right to conserve the biggest contiguous chunk of free memory
+# (if there's an allocated chunk to the right allocate memory at the right end, then )
+
+# when the program runs out of memory call brk() to extend the memory of the program, return 0 in case of error
+# request memory in increments of chunk_size, or multiples of chunk_size if more memory is requested
+# keep track of program size in s1 (pointer to mega structure)
+# megastructure {
+# dword program_size
+# word  requested_chunk_size
+# ptr *chunk_list
+# }
+
+# size of ptr = word
+
+
+# figure out if chunks are contiguous if requested separately
+
+# m4_define(C_PREV, 0)
+# m4_define(C_OCCUPIED, 4)
+# m4_define(C_SIZE, 8)
+
+# m4_define(C_HEAD_SIZE, 12)
+
+.data
+    test_str1: .string "0123456789ABCDE"
+    test_str2: .string "Abc"
+    test_str3: .string "pollo"
+    test_str4: .byte 0 #""
+    test_str5: .string "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas dignissim metus ut nibh aliquet sagittis. Cras porta cursus diam, in maximus metus imperdiet vel. Nulla id justo sit amet nunc egestas scelerisque. Donec urna ex, cursus non tellus eu, suscipit vestibulum urna. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum ornare ex quis aliquet maximus. Praesent efficitur faucibus erat in elementum. Aliquam vel iaculis nisi, vel varius erat. Nunc ac. "
+    n_test_strings: .word 5
+    malloc_stack_size: .word 16    
+    heap_size: .word 1024
+    max_chunk_size: .word 0x10000000
+    heap_init: .word 0
+    request_size: .word 1024
+.text
+.global _start
+
+# m4_define(N_tests, 5)
+# 
+
+_start:
+
+    
+    li s1, 0
+    li s2, N_tests
+
+    lw t1, n_test_strings
+    add t0, t1, s2 #n_str + n_tests
+    slli t0, t0, 2 #(N_tests + n_test_strings) * 4 
+    sub sp, sp, t0
+
+
+    
+    la t1, test_str1
+    la t2, test_str2
+    la t3, test_str3
+    la t4, test_str4
+    la t5, test_str5
+
+    sw t1, m4_eval(N_tests * 4) (sp)
+    sw t2, m4_eval((N_tests + 1)* 4) (sp)
+    sw t3, m4_eval((N_tests + 2)* 4) (sp)
+    sw t4, m4_eval((N_tests + 3)* 4) (sp)
+    sw t5, m4_eval((N_tests + 4)* 4) (sp)
+    
+    .data
+        repeat_loop: .word 1
+.text 
+
+    malloc_loop:
+        
+        lw t0, n_test_strings
+        rem t0, s1, t0
+        slli t0, t0, 2
+        add a0, sp, t0
+        lw a0, m4_eval(N_tests * 4) (a0)
+
+        call malloc_test_print_str
+        
+        slli t0, s1, 2
+        add t0, sp, t0
+        sw a0, 0(t0)
+
+        addi s1, s1, 1
+        blt s1, s2, malloc_loop
+    
+
+    lw t0, repeat_loop
+    beq x0, t0, exit
+
+    la t0, repeat_loop
+    sw x0, 0(t0)
+    li s5, N_tests
+    li s1, 0
+
+    .data
+        free_prologue: .string "\nTrying to free str:"
+
+.text
+    free_loop:
+
+        slli t0, s1, 2 #i * 4
+        add s4, sp, t0 #i * 4 + stack
+        lw a0, 0(s4)  #*str[i]
+
+        la a1, free_prologue
+        li a2, 404
+        call log_str
+    
+        lw a0, 0(s4)
+
+        call free
+
+        addi s1, s1, 1
+        blt s1, s2, free_loop
+
+    li s5, N_tests
+    li s1, 0
+
+    j malloc_loop
+exit:
+    li a0, 0
+    li a7, 10
+    ecall #exit
+    
+
+    .data
+    test_str_prompt: .string "\nTesting duplicating src str:"
+    newline: .string "\n"
+    fail_str: .string "error: malloc failed\n"
+    newline_indent: .byte 10, 11, 0
+.text
+malloc_test_print_str:
+    addi sp, sp, -16
+    sw ra, 0(sp)
+    sw a0, 4(sp)
+    
+    #get input length
+    call strlen
+    sw a0, 8(sp)
+
+
+    #log input string with address and length
+    lw a0, 4(sp)
+    la a1, test_str_prompt
+    lw a2, 8(sp)
+    call log_str #log_str(str, "Testing...", len)
+
+   
+    #malloc call with input_size + 1
+    lw a0, 8(sp)
+    addi a0, a0, 1
+    call malloc
+
+    beq a0, x0, on_fail
+    
+    #store malloc address on stack
+    sw a0, 12(sp)
+
+    .data
+        malloc_str: .string "Malloc return "
+    .text
+    la a1, malloc_str
+    #lw a0, 12(sp)
+    call log_addr #log returned address
+
+    #copy src str into address
+    lw a0, 4(sp) #src
+    lw a1, 12(sp) #dest
+    lw a2, 8(sp) #len
+    call strncpy
+
+
+    .data 
+        test_str_copy: .string "Copy:"
+.text
+    #log copied string with address and length
+    lw a0, 12(sp)
+    la a1, test_str_copy
+    lw a2, 8(sp)
+    call log_str
+
+    #load duplicated string from stack
+    lw a0, 12(sp)
+
+    lw ra, 0(sp)
+    addi sp, sp, 16
+    ret
+
+#a0: src, #a1: dest #a2: len
+strncpy:
+    li t0, 0
+    blt a2, x0, strncpy_end
+    beq x0, a2, strncpy_terminate
+
+    strncpy_loop:
+        add t1, t0, a0
+        lb t2, 0(t1) #c = src[i]
+
+        add t3, t0, a1
+        sb t2, 0(t3) #dest = src[i]
+        addi t0, t0, 1
+        blt t0, a2, strncpy_loop 
+
+    strncpy_terminate:
+    
+    add t3, a1, t0
+    sb x0, 0(t3)
+
+    strncpy_end:
+    mv a0, a1
+    ret
+
+#a0: addr #a1: message
+log_addr:
+    addi sp, sp, -8
+    sw ra, 0(sp)
+
+    sw a0, 4(sp)
+
+    beq a1, x0, log_addr_raw
+
+    mv a0, a1
+    li a7, 4
+    ecall
+
+    log_addr_raw:
+
+    .data
+        log_addr_str: .string "Address: "
+.text    
+    la a0, log_addr_str
+
+    li a7, 4
+    ecall #printstr(log_addr_str)
+
+    lw a0, 4(sp)
+    li a7, 34 #print hex
+    ecall 
+
+    call print_newline
+
+    lw ra, 0(sp)
+    addi sp, sp, 8
+    ret
+
+print_newline:
+    addi sp, sp, -4
+    sw ra, 0(sp)
+
+    li a0, 10 #\n
+    li a7, 11 #printchar
+    ecall #putchar(\n)
+
+    lw ra, 0(sp)
+    addi sp, sp, 4
+    ret
+
+#a0: str #a1 message #a2: len
+log_str:
+    addi sp, sp, -4
+    sw ra, 0(sp)
+
+    addi sp, sp, -12
+    sw a0, 0(sp)
+    sw a1, 4(sp)
+
+    bge x0, a2, log_str_with_len #if (len < 0) len = strlen(str)
+
+    call strlen
+
+    mv a2, a0
+    log_str_with_len:
+    sw a2, 8(sp)
+
+    lw a0, 4(sp)
+    li a7, 4 #print str
+    ecall #printstr(message)
+
+    call print_newline
+
+
+    lw a0, 0(sp) #print string
+    li a7, 4
+    ecall
+
+    .data
+        log_str_size: .byte 10, 11
+        .string "Size: "  #\t string literal is not accepted so i have to write in in as a byte value preceding the char array
+
+.text
+    la a0, log_str_size
+    li a7, 4 #printstr("Size: ")
+    ecall
+
+    lw a0, 8(sp)
+    li a7, 1 #printnumber(size)
+    ecall
+
+    lw a0, 0(sp)
+    la a1, newline_indent
+    call log_addr
+
+    addi sp, sp, 12
+
+    lw ra, 0(sp)
+    addi sp, sp, 4
+
+    ret
+
+    
+strlen:
+    mv t0, a0
+    li a0, 0
+    beq t0, x0, strlen_end
+strlen_loop:
+    add t1, a0, t0
+    lb t2, 0(t1)
+    beq x0, t2, strlen_end
+    addi a0, a0, 1
+    j strlen_loop
+    
+strlen_end:
+    ret
+    
+on_fail:
+    la a0, fail_str
+    li a7, 4
+    
+    j exit
+        
+#a0: request_size
+#s1: heap_start
+#s2: current chunk
+#s3: &best_fit
+#s4: heap_outer_bound
+#s5: prev
+best_fit_chunk_search:
+#    find_chunk:
+    addi sp, sp, -8
+    sw ra, 4(sp)
+
+    addi sp, sp, -24
+    sw s0, 0(sp)
+    sw s1, 4(sp)
+    sw s2, 8(sp)
+    sw s3, 12(sp)
+    sw s4, 16(sp)
+    sw s5, 20(sp)
+
+    li s0, 28
+    ##...
+    
+    la s1, heap_start #pointer to start of the heap
+    mv s2, s1  #it's gonna be used as the pointer to the current chunk
+    li s3, 0 #address of the smallest compatible free chunk
+    lw s4, heap_size
+    addi s4, s4, -C_HEAD_SIZE #first unusable address for chunk
+    add s4, s4, s1 #pointer to the last usable address in heap
+    li s5, 0
+    # lw a0, 4(sp) #loads requested_bytes
+    
+    bge s2, s4, end_chunk_search #current chunk >= heap_start + (heap_size - header_size)
+
+    chunk_search: #while loop, loops over whole heap
+
+    
+        lw t0, C_OCCUPIED (s2)
+        sltu t6, x0, t0 #(chunk.occupied != 0)
+        
+        lw t0, C_SIZE (s2) #loads current.size
+        slt t5, t0, a0 #(current.size < requested_bytes)
+        or t6, t6, t5
+        bne t6, x0, next_chunk #if (!current.occupied || current.size < request_size) skip
+        
+        beq s3, x0, select_chunk #if smallest == null 
+        
+        lw t6, C_SIZE (s3) #loads size of smallest        
+        bge t5, t6, next_chunk #if (current.size >= smallest.size) skip
+        
+        select_chunk: #smallest_free_chunk = current_chunk
+            mv s3, s2
+    
+        next_chunk:
+        mv s5, s2 #stores previous chunk on stack
+        lw t6, C_SIZE (s2) #current.size
+        add s2, s2, t6 # current_chunk += current.chunk_size
+        addi s2, s2, C_HEAD_SIZE # current_chunk += chunk_header_size
+    
+        blt s2, s4, chunk_search #current chunk >= heap_start + (heap_size - header_size)
+    
+    
+    end_chunk_search:
+    
+    # bne x0, s3, allocate_chunk
+    mv a0, s3
+    mv a1, s5
+
+
+    lw s0, 0(sp)
+    lw s1, 4(sp)
+    lw s2, 8(sp)
+    lw s3, 12(sp)
+    lw s4, 16(sp)
+    lw s5, 20(sp)
+
+    addi sp, sp, 24
+    lw ra, 4(sp)
+    addi sp, sp, 8
+    ret
+
+#ret_val: a0: best_fit, a1: last_chunk
+
+
+
+fit_request_chunk_size:
+    la t1, request_size
+    lw t0, 0(t1)
+
+    blt a0, t0, chunk_size_fits_request_size
+increase_request_chunk_size: #while loop that increases the size of a request
+    slli t0, t0, 1 # request size <<= 1
+    sw t0, 0(t1)
+    blt a0, t0, chunk_size_fits_request_size
+    
+    chunk_size_fits_request_size:
+    ret
+    
+#a0: last_chunk, a1: new_chunk_size, a2: available_memory
+new_chunk:
+    addi sp, sp, -8
+    sw ra, 0(sp)
+
+    andi a2, a2, -4 #4 aligns available memory by shrinking
+
+    andi t0, a1, 0b11
+    beq x0, t0, four_aligned_chunk_size
+    
+    _align_requested_size:
+        
+        addi sp, sp, -8
+        sw a0, 0(sp)
+        sw a2, 4(sp)
+        mv a0, a1
+        call four_align_size
+        mv a1, a0
+        lw a0, 0(sp)
+        lw a2, 4(sp)
+        addi sp, sp, 8
+
+    four_aligned_chunk_size:
+    
+    addi a2, a2, -C_HEAD_SIZE #available_memory -= size_of_header
+
+    bne a1, x0, set_chunk_size
+    use_all_available:
+    mv a1, a2 #size = available_memory - size_of_header
+    slti t0, a2, 1 #available_memory <= 0
+    add a1, a1, t0 #size += available_memory == 0 -> set to trigger subsequent check
+    set_chunk_size:
+
+    bge a2, a1, calc_new_address #available_memory >= size 
+
+    new_chunk_fail:
+        li a0, 0
+        j new_chunk_end
+    
+    calc_new_address:
+    beq x0, a0, no_prev
+
+    lw t1, C_SIZE (a0) #prev.size
+
+    mv t0, a0 # STORE PREV IN T0
+    
+    add a0, a0, t1 # prev += prev.size
+    addi a0, a0, C_HEAD_SIZE # new = prev + prev.size + header_size
+    j set_new_chunks_prev
+
+    no_prev:
+    la a0, heap_start #new = heap_start
+    mv t0, x0
+
+    set_new_chunks_prev:
+    sw a0, 4(sp)
+    sw t0, C_PREV (a0) #new.prev = prev
+
+    set_new_chunks_size:
+
+    
+    sw a2, C_SIZE (a0) #new.size = available_memory
+    sw x0, C_OCCUPIED (a0) #new.occupied = false
+
+    sub a2, a2, a1 #available_memory -= size
+    
+    li t0, 4 #min_size
+    addi t0, t0, C_HEAD_SIZE
+    blt a2, t0, new_chunk_end #available_memory < header_size + min_size
+
+    chunk_with_leftover_memory:
+        sw a1, C_SIZE (a0) #new.size = size
+
+        mv a1, x0
+        call new_chunk #(current_chunk, 0, available_size - size)
+
+    new_chunk_return:
+    lw a0, 4(sp)
+    new_chunk_end:
+    lw ra, 0(sp)
+    addi sp, sp, 8
+    ret
+#return: #a0: new chunk
+
+
+#a0: chunk #a1: reduced_size
+split_chunk:
+    lw t0, C_OCCUPIED (a0)
+    beq x0, t0, split_free_chunk #cannot split occupied chunks
+        failed_split:
+        li a0, 0
+        j split_chunk_end
+    
+    split_free_chunk:
+    addi sp, sp, -8
+    sw ra, 0(sp)
+    sw a0, 4(sp)
+
+    lw t2, C_SIZE (a0) #chosen_chunk.size
+    sub t3, t2, a1 #leftover memory = chosen.size - target_size
+    
+    lw a2, C_SIZE (a0) #available_memory = chunk.size
+#    sw a1, C_SIZE (a0) #chunk.size = target_size
+
+    lw a0, C_PREV (a0) #chunk.prev
+    call new_chunk #(chunk.prev, target_size, previous_chunk_size)
+    #tries to create a new chunk after the previous one, nothing happens if not enough memory is available
+    
+    lw a0, 4(sp)
+    lw ra, 0(sp)
+    addi sp, sp, 8
+    split_chunk_end:
+    ret    
+#return : original_chunk / 0 on a fail
+
+#if not already, expands requests size to the next multiple of 4
+four_align_size:
+    andi t0, a0, -4   # size - size % 4
+    slt t1, t0, a0      # size % 4 > 0
+    slli t1, t1, 2      # s%4!=0 <<2 # (4 % 0 != 0)? 4 : 0
+    add a0, t0, t1      # size = (size - size % 4 + 4 * (size % 4 != 0))
+    ret
+
+#a0 is the size required, returns address of allocated memory, 0 on fail
+malloc:
+    ble a0, x0, failed_malloc
+    lw t0, malloc_stack_size
+    sub sp, sp, t0
+    sw ra, 0(sp)
+    
+    ble a0, x0, failed_malloc
+    lw t0, max_chunk_size
+    blt t0, a0, failed_malloc #checks if size is (0 < x < max_size)
+    
+    call four_align_size
+    sw a0, 4(sp)
+
+    call fit_request_chunk_size 
+    call heap_initialize
+
+    lw a0, 4(sp)
+    call best_fit_chunk_search
+    
+    
+    bne x0, a0, allocate_chunk
+                                #if best_fit(size) == null
+    # lw a0, 4(sp) 
+    mv a0, a1 #last chunk
+    call request_memory          #request_memory(last_chunk)
+    
+    beq a0, x0, failed_malloc
+    
+allocate_chunk: 
+    sw a0, 12(sp) #save chunk
+    lw a1, 4(sp) #request_size
+    call split_chunk
+ 
+return_chunk: 
+    lw a0, 12(sp) #chosen_chunk
+    li t0, 1
+    sw t0, C_OCCUPIED (a0) #chunk.occupied = true
+    addi a0, a0, C_HEAD_SIZE #offsets pointer from header to usable memory
+    j malloc_return
+    
+ 
+failed_malloc:
+    li a0, 0
+
+malloc_return:
+
+    lw ra, 0(sp)
+    lw t0, malloc_stack_size
+    add sp, sp, t0
+    
+    ret
+#end to malloc
+    
+
+    
+    
+heap_initialize:
+    lw t0, heap_init
+    bne t0, x0, heap_is_initialized # if (chunks[0].size != 0) return;
+    
+    
+    addi sp, sp, -4
+    sw ra, 0(sp)
+    
+    la t0, heap_init
+    li t1, 1
+    sw t1, 0(t0)
+
+    lw a0, heap_size
+    call four_align_size
+    la t0, heap_size
+    sw a0, 0(t0)
+    
+    
+    mv a2, a0
+    
+    mv a0, x0
+    mv a1, x0
+    call new_chunk
+
+    lw ra, 0(sp)
+    addi sp, sp, 4
+
+    
+heap_is_initialized: 
+    ret   
+    
+
+#a0: chunk_1, #a1: chunk_2
+merge_chunks:
+    blt a0, a1, not_swap_mc #we always want the chunk first in memory as a0
+    
+    xor a1, a0, a1 
+    xor a0, a0, a1
+    xor a1, a0, a1 #swap
+    
+    not_swap_mc:
+    lw t6, heap_size
+    la t5, heap_start
+    add t6, t6, t5 #heap_end = heap_start + heap_size
+    addi t5, t5, -1 #heap_start - 1 
+    slt t0, t5, a0 #heap_start <= heap_start
+    slt t1, a1, t6 #right < heap_end
+    and t0, t0, t1 #(heap_start <= left && right < heap_end) 
+    beq t0, x0, failed_merge #a0 points to before the heap or a1 points to after the heap
+
+    lw t0, C_OCCUPIED (a0) #left_chunk.occupied
+    lw t1, C_OCCUPIED (a1) #right_chunk.occupied
+    lw t2, C_PREV (a1) #right_chunk.prev
+    slt t2, a0, t2 #left_chunk < right_chunk.prev 
+    #here i need to check if left == right_chunk
+    #but since left comes beore than right it cannot be > right.prev
+    
+    or t4, t0, t1
+    or t4, t2, t4
+    beq x0, t4, proceed_to_merge 
+            # if (#not contiguous chunks / occupied chunks) return null
+        failed_merge:
+        li a0, 0
+        ret
+
+    proceed_to_merge:
+
+    lw t1, C_SIZE (a1) #right.size
+    sw x0, C_PREV (a1) #####
+    sw x0, C_OCCUPIED (a1) # wipe right chunk
+    sw x0, C_SIZE (a1) #####
+
+    add t5, t1, a1 #right + right_size
+    addi t5, t5, C_HEAD_SIZE #right.next = right + right_size + header_size
+
+    #possibly test if right == right.next.prev?
+    ble t6, t5, no_next_to_link # (heap_end <= right.next)
+    link_next_chunk:
+        
+        sw a0, C_PREV (t5) #right.next.prev = left
+
+    no_next_to_link:
+    
+    lw t2, C_SIZE (a0) #left.size 
+    addi t0, t1, C_HEAD_SIZE #header_size + right_size
+    add t0, t0, t2 #left.size + header_size + right.size
+
+    sw t0, C_SIZE (a0) #left.size += right.size + header_size
+    
+    merge_return:
+        
+    ret
+#return: a0 merged_chunk/null on fail
+    
+#a0: last_chunk, a1: request_size  
+make_newly_requested_memory_chunk:
+    # lw t0, 4(sp) #last chunk
+
+    lw t1, C_SIZE (a0) #last_chunk.size
+    addi t3, t1, C_HEAD_SIZE # last_chunk.size + header_size
+    
+    add t1, t3, t0 # &last_chunk + header_size + last_chunk.size
+    sw t0, C_PREV (t1) #new_chunk.prev = last_chunk
+    sw x0, C_OCCUPIED (t1) #new_chunk.occupied = false
+    
+    la t4, heap_start
+    sub t5, t1, t4 #next_chunk - &heap
+    addi t5, t5, C_HEAD_SIZE #next_chunk - &heap - header_size
+    sw t5, C_SIZE (t1) #new_chunk.size = &new_chunk - &heap_start - header_size
+    ret
+
+#a0 : last_chunk
+request_memory:
+    
+    addi sp, sp, -20
+    sw ra, 0(sp)
+    sw a0, 4(sp)
+    
+    lw a0, C_OCCUPIED (a0) #last_chunk.occupied
+    sw a0, 16(sp) #save it as a flag
+    
+    lw t1, request_size
+    lw t2, heap_size
+    li t3, C_HEAD_SIZE
+    
+    lw t4, 16(sp) #last_chunk.occupied
+    mul t3, t3, t4 # adds header size only if the last chunk was occupied (request_size += header_size * last_chunk.occupied)
+    add t3, t3, t1 # -> size_of_header + request_size
+    sw t3, 12(sp) #requested bytes (also requests space for header)
+    add t2, t2, t3 # new_heap_size = heap_size + header_size + request_size
+    
+    mv a0, t2
+    call four_align_size
+    sw a0, 8(sp)
+    
+    set_new_program_break:
+    la t0, heap_start
+    add a0, t0, a0 #heap start + new_heap_size
+
+    li a7, 214 #brk syscall
+    
+    ecall
+    
+    li t0, -1
+    beq a0, t0, brk_fail
+    
+    extend_heap:
+    la t0, heap_size
+    lw t1, 8(sp) 
+    sw t1, 0(t0) #heap_size = new_heap_size
+
+    
+    create_new_chunk:
+    lw a0, 4(sp) #last_chunk
+    lw a1, 12(sp) # how much the program memory was extended
+    call new_chunk
+
+        
+    mv a0, t1
+    j request_memory_return
+    
+extend_last_chunk:    
+    lw t0, 4(sp) #last chunk
+    lw t1, C_SIZE (t0) #last chunk.size
+    lw t2, 12(sp)# requested bytes
+    
+    add t1, t1, t2
+    sw t2, C_SIZE (t0) #chunk_size += requested_bytes
+    mv a0, t0
+    j request_memory_return
+    
+   
+brk_fail:
+    li a0, 0
+    
+request_memory_return:
+    lw ra, 0(sp)
+    addi sp, sp, 20
+    ret
+    
+    
+    
+#a0: mem_addr
+free: 
+    addi sp, sp, -8
+    sw ra, 0(sp)
+    
+
+    la t0, heap_start
+    lw t1, heap_size
+
+    add t1, t1, t0 #heap_end
+    slt t6, a0, t0 #mem_addr < heap_start
+    slt t5, t1, a0 #heap_end < mem_addr
+
+    or t6, t5, t6 #
+    bne x0, t6, out_of_range_free
+
+
+    lw t6, C_SIZE (t0) #first_chunk.size
+    add t6, t0, t6 #first_chunk.size + &first_chunk
+    addi t6, t6, C_HEAD_SIZE #next_chunk = current + size + header_size
+
+    blt a0, t6, chunk_match #mem_addr < next_chunk
+    match_mem_addr:
+        mv t0, t6       #current = next
+        lw t6, C_SIZE (t0)    #current.size
+        add t6, t0, t6  #size + &current
+        addi t6, t6, C_HEAD_SIZE  #next_chunk = &current + size + header_size
+
+        slt t2, t0, a0    #current < mem_addr
+        slt t3, a0, t6    #mem_addr < next
+        and t3, t3, t2    #current < mem_addr < next
+        beq x0, t3, chunk_match
+
+    chunk_match:
+    
+    lw t1, C_OCCUPIED (t0)
+    beq x0, t1, double_free #current.occupied == 0
+    
+    sw x0, C_OCCUPIED (t0) #current.occupied = 0
+    sw t0, 4(sp)
+    
+    merge_left:
+    mv a1, t0
+    lw a0, C_PREV (a1) #prev
+    call merge_chunks
+
+
+    bne x0, a0, merge_right
+        lw a0, 4(sp)
+
+    merge_right:
+    lw t0, C_SIZE (a0)
+    addi a1, a0, C_HEAD_SIZE
+    add a1, a1, t0
+    call merge_chunks
+
+
+    lw ra, 0(sp)
+    addi sp, sp, 8 
+
+    ret
+    
+    out_of_range_free:
+        .data 
+        oor_free: .string "Out of range free\n"
+        .text
+        li a7, 64 #write
+        li a0, 2 #stderr 
+        la a1, oor_free
+        li a2, 18 #write (2, "Out of range free\n", 19);
+        ecall
+        
+        j exit
+        
+    double_free:
+        .data
+         double_free_str: .string "Double free\n"
+        .text
+        li a7, 64 #write
+        li a0, 2 #stderr 
+        la a1, double_free_str
+        li a2, 18 #write (2, "Out of range free\n", 19);
+        ecall
+        j exit
+        
+.bss
+    .align 2
+    heap_start: .zero 1024 #should be last
