@@ -1,27 +1,25 @@
-SRC=Cifrario.s
+SRC=Cifrario.m4
 
-SIDE=alloc.s
+SIDE=alloc.m4
 
-RIPES_PATTERN=_r.s
+SRC_PATTERN=.m4
 
-NAME=$(SRC:%.s=%$(RIPES_PATTERN))
+RIPES_PATTERN=.s
 
-SIDE_NAME=$(SIDE:%.s=%$(RIPES_PATTERN))
+NAME=$(SRC:%$(SRC_PATTERN)=%$(RIPES_PATTERN))
 
-COMPILED=$(SIDE:%.s=%$(RIPES_PATTERN))
-COMPILED:=$(COMPILED:%.s=%)
+SIDE_NAME=$(SIDE:%$(SRC_PATTERN)=%$(RIPES_PATTERN))
 
-SIDE_COMPILED=$(SRC:%.s=%$(RIPES_PATTERN))
-SIDE_COMPILED:=$(SIDE_COMPILED:%.s=%)
+COMPILED=$(NAME:%$(RIPES_PATTERN)=%)
 
+SIDE_COMPILED=$(SIDE_NAME:%$(RIPES_PATTERN)=%)
 
 REPLACE_SCRIPT=m4 -P macro_replace.m4
-
 
 all: $(NAME)
 
 
-%$(RIPES_PATTERN): %.s
+%$(RIPES_PATTERN): %$(SRC_PATTERN)
 	$(REPLACE_SCRIPT) $^ > $@ 
 
 
@@ -41,7 +39,6 @@ else
 	@echo no $(SIDE_NAME) file found
 endif
 
-		
 
 clean:
 	rm -rf $(NAME)
