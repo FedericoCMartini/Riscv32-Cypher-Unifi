@@ -18,7 +18,7 @@ OPT_DIR=$(ASM_DIR) $(BIN_DIR)
 
 
 define source_diff=
-${REPLACE_SCRIPT} ${1:%${ASM_PATTERN}=%${SRC_PATTERN}} | diff - ${1}
+${REPLACE_SCRIPT} ${1:$(ASM_DIR)%${ASM_PATTERN}=$(SRC_DIR)%${SRC_PATTERN}} | diff - ${1}
 
 endef
 
