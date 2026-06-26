@@ -1,53 +1,77 @@
-SRC=Cifrario.m4
-
-SIDE=alloc.m4
+SHELL=/bin/sh
 
 SRC_PATTERN=.m4
+ASM_PATTERN=.s
 
-RIPES_PATTERN=.s
+NAME=Cifrario
+SIDE=alloc
 
-NAME=$(SRC:%$(SRC_PATTERN)=%$(RIPES_PATTERN))
+BINARIES=$(NAME) $(SIDE)
+ASM_DIR=./asm
+SRC_DIR=./src
+BIN_DIR=./bin
 
-SIDE_NAME=$(SIDE:%$(SRC_PATTERN)=%$(RIPES_PATTERN))
+OPT_DIR=$(ASM_DIR) $(BIN_DIR)
 
-COMPILED=$(NAME:%$(RIPES_PATTERN)=%)
 
-SIDE_COMPILED=$(SIDE_NAME:%$(RIPES_PATTERN)=%)
 
-REPLACE_SCRIPT=m4 -P macro_replace.m4
+
+
+define source_diff=
+${REPLACE_SCRIPT} ${1:%${ASM_PATTERN}=%${SRC_PATTERN}} | diff - ${1}
+
+endef
+
+M4_PROLOGUE="m4_changecom(\`/*', \`*/')"
+
+REPLACE_SCRIPT=echo -n $(M4_PROLOGUE) | m4 -P -
+
 
 all: $(NAME)
 
+#redirects asm to asm_dir
+%$(ASM_PATTERN):
+	@make --no-print-directory $(ASM_DIR)/$*$(ASM_PATTERN)
 
-%$(RIPES_PATTERN): %$(SRC_PATTERN)
+$(ASM_DIR)/%$(ASM_PATTERN): $(SRC_DIR)/%$(SRC_PATTERN) | $(ASM_DIR)
 	$(REPLACE_SCRIPT) $^ > $@ 
 
+$(OPT_DIR): %:
+	mkdir $@
 
-%: %.s	
+#redirects binary to bin_dir
+$(BINARIES): % :
+	@make --no-print-directory $(BIN_DIR)/$* 
+
+$(BIN_DIR)/% : $(ASM_DIR)/%$(ASM_PATTERN) | $(BIN_DIR)
 	riscv64-linux-gnu-gcc -mabi="ilp32" -march="rv32im" -nostdlib -static $^ -o $@
 
 diff:
-ifneq ("$(wildcard $(NAME))","")
-	${REPLACE_SCRIPT} ${SRC} | diff - ${NAME}
-else
-	@echo no $(NAME) file found
-endif
-
-ifneq ("$(wildcard $(SIDE_NAME))","")
-	${REPLACE_SCRIPT} ${SIDE} | diff - ${SIDE_NAME}
-else
-	@echo no $(SIDE_NAME) file found
-endif
-
+	$(foreach asm, $(wildcard $(ASM_DIR)/*$(ASM_PATTERN)), $(call source_diff,$(asm)))
 
 clean:
-	rm -rf $(NAME)
-	rm -rf $(SIDE_NAME)
+	rm -rf $(BINARIES:%=$(ASM_DIR)/%${ASM_PATTERN})
 
 binclean:
-	rm -rf $(COMPILED)
-	rm -rf $(SIDE_COMPILED)
+	rm -rf $(addprefix $(BIN_DIR)/, $(BINARIES))
 
-fclean: clean binclean
+dirclean:
+	$(foreach dir, $(filter $(wildcard ./*), $(OPT_DIR)), \
+	$(shell rm -d $(dir)))
 
-.PHONY: fclean binclean clean all diff
+fclean: clean binclean dirclean
+
+
+testcompile_%: $(BIN_DIR)/%  ;
+	
+testcompile:
+	make -is --no-print-directory testcompile_$(NAME) testcompile_$(SIDE)
+	
+
+test: testcompile
+
+.PHONY: fclean binclean dirclean clean all diff test testcompile $(NAME) $(SIDE) %$(ASM_PATTERN)
+
+#.PRECIOUS: $(ASM_DIR)/%$(ASM_PATTERN)
+
+.IGNORE: testcompile testcompile_$(NAME) testcompile_$(SIDE)
