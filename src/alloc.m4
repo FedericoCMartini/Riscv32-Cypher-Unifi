@@ -31,24 +31,26 @@
 # m4_define(C_HEAD_SIZE, 12)
 
 .data
+m4_ifdef(`COMBINE', `', `
     test_str1: .string "0123456789ABCDE"
     test_str2: .string "Abc"
     test_str3: .string "pollo"
     test_str4: .byte 0 #""
     test_str5: .string "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas dignissim metus ut nibh aliquet sagittis. Cras porta cursus diam, in maximus metus imperdiet vel. Nulla id justo sit amet nunc egestas scelerisque. Donec urna ex, cursus non tellus eu, suscipit vestibulum urna. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum ornare ex quis aliquet maximus. Praesent efficitur faucibus erat in elementum. Aliquam vel iaculis nisi, vel varius erat. Nunc ac. "
-    n_test_strings: .word 5
+    n_test_strings: .word 5 # ')
     malloc_stack_size: .word 16    
     heap_size: .word 1024
     max_chunk_size: .word 0x10000000
     heap_init: .word 0
     request_size: .word 1024
 .text
-.global _start
 
-# m4_define(N_tests, 5)
-# 
+m4_ifdef(`COMBINE', `.global malloc', `.global _start') 
+m4_ifdef(`COMBINE', `.global free')
+# m4_ifdef(`COMBINE', `', `m4_define(N_tests, 5)')
+# /* '*/ #needed for m4 and correct text highlighting on vscode
 
-_start:
+m4_ifdef(`COMBINE', `', `_start:
 
     
     li s1, 0
@@ -75,12 +77,18 @@ _start:
     
     .data
         repeat_loop: .word 1
+        test_str_offset: .word 7
 .text 
 
     malloc_loop:
         
         lw t0, n_test_strings
-        rem t0, s1, t0
+        lw t1, test_str_offset
+        lw t2, repeat_loop
+        mul t1, t1, t2
+        add t1, t1, s1
+        rem t0, t1, t0
+        
         slli t0, t0, 2
         add a0, sp, t0
         lw a0, m4_eval(N_tests * 4) (a0)
@@ -196,6 +204,7 @@ malloc_test_print_str:
     lw ra, 0(sp)
     addi sp, sp, 16
     ret
+')
 
 #a0: src, #a1: dest #a2: len
 strncpy:
@@ -220,6 +229,8 @@ strncpy:
     strncpy_end:
     mv a0, a1
     ret
+
+m4_ifdef(`COMBINE', `', `
 
 #a0: addr #a1: message
 log_addr:
@@ -337,7 +348,7 @@ on_fail:
     la a0, fail_str
     li a7, 4
     
-    j exit
+    j exit ')
         
 #a0: request_size
 #s1: heap_start

@@ -1,19 +1,22 @@
 .data
-    myplaintext: .string "STUDENTE"
+    myplaintext: .string "STUDENTE123"
     max_size: .byte 200
     mpt_buffer: .zero 200
-    mycypher: .string "A"
+    mycypher: .string "DD"
     mycypher_buffer: .zero 200
     blocKey: .string "OLA"
     .blocKey_buffer: .zero 200
     sostK: .byte -25
     min_char: .byte 32
     max_char: .byte 127
-    block_stack_size: .word 4  
-    cypher_jump_table: .zero 20
-    decypher_jump_table: .word decypher_case_A, decypher_case_B
-    ssr_jump_table: .zero 48
-    rsr_jump_table: .zero 48
+    # cypher_jump_table: .zero 20
+    .align 2
+    cypher_jump_table: .word cypher_case_A, cypher_case_B, cypher_case_C, cypher_case_D, cypher_case_E
+    decypher_jump_table: .word decypher_case_A, decypher_case_B, decypher_case_C, decypher_case_D, decypher_case_E 
+    ssr_jump_table: ssr_case_12, ssr_case_11, ssr_case_10, ssr_case_9, ssr_case_8, ssr_case_7, ssr_case_6, ssr_case_5, ssr_case_4, ssr_case_3, ssr_case_2, ssr_case_1
+    rsr_jump_table: rsr_case_12, rsr_case_11, rsr_case_10, rsr_case_9, rsr_case_8, rsr_case_7, rsr_case_6, rsr_case_5, rsr_case_4, rsr_case_3, rsr_case_2, rsr_case_1
+    # ssr_jump_table: .zero 48
+    # rsr_jump_table: .zero 48
     arena_in_use: .byte 0
     arena_alloc_size: .word 0 #
     arena_size: .word 1400 # 1000 + 384
@@ -49,18 +52,24 @@
 # add 8 to sp
 # return
 
-# define(BASE_STACK, 8)
-# deine (RET_ADDR, 4)
-# deine (USED_REGISTERS, 0)
-# deine (A, 65)
-# deine (Z, 90)
-# deine (a, 97)
-# deine (z, 122)
-# deine (ASCII_0, 48)
-# deine (ASCII_9, 57) 
-.text
+# m4_define(BASE_STACK, 8)
+# m4_define(RET_ADDR, 4)
+# m4_define(USED_REGISTERS, 0)
+# m4_define(A, 65)
+# m4_define(Z, 90)
+# m4_define(a, 97)
+# m4_define(z, 122)
+# m4_define(ASCII_0, 48)
+# m4_define(ASCII_9, 57)
+# m4_define(PLAIN_TEXT, 0) 
+# m4_define(MY_CYPHER, 4)
+# m4_define(SOSTK, 8)
+# m4_define(BLOCK_KEY, 12)
+# m4_define(DICTIONARY_FUNCTION, 16)
 
-main:
+.text
+.global _start
+_start:
 
     call load_jump_tables
 
@@ -68,17 +77,22 @@ main:
     call sanitize_cypher #this trunkates cypher at first character not in accepted_cyphers
                          #necessary because calling the cypher with a bad string breaks the program
 
-
-    la a0, myplaintext
-    la a1, mycypher
-    lb a2, sostK
-    la a3, blocKey
-    la a4, dictionary_function
-
+    addi sp, sp, -20
+    mv a0, sp
+    call load_encrypt
+    li a1, 1
     call cypher_iter #procedure is at the bottom of the file
-    
-    mv s1, a0
+        #(cypher_iter(cypher_data, encrypt=true))
 
+    beq x0, a0, exit #if (cypher(...) == null) exit();
+    mv a1, a0 #saving the result
+    mv a0, sp 
+    call load_decypher
+    li a1, 0
+    call cypher_iter #(cypher_iter(cypher_data, encrypt=false))
+
+    mv s1, a0
+    exit:
     li a7, 10
     ecall #exit
 
@@ -88,7 +102,39 @@ not_implemented:
     li a7, 4
     mv t1, a0
     ret
-    
+
+#a0: encrpt data struct address
+load_encrypt:
+    la t0, myplaintext
+    la t1, mycypher
+    lb t2, sostK
+    la t3, blocKey
+    la t4, dictionary_function
+
+    sw t0, PLAIN_TEXT (a0)
+    sw t1, MY_CYPHER (a0)
+    sw t2, SOSTK (a0)
+    sw t3, BLOCK_KEY (a0)
+    sw t4, DICTIONARY_FUNCTION (a0)
+
+    ret
+#return: a0: loaded data structure
+
+#a0: encrpt data struct address #a1: cypher_text
+load_decypher:
+    mv t0, a1
+    la t1, mycypher
+    lb t2, sostK
+    la t3, blocKey
+    la t4, dictionary_function
+
+    sw t0, PLAIN_TEXT (a0)
+    sw t1, MY_CYPHER (a0)
+    sw t2, SOSTK (a0)
+    sw t3, BLOCK_KEY (a0)
+    sw t4, DICTIONARY_FUNCTION (a0)
+
+    ret
 
 
 load_jump_tables:
@@ -185,7 +231,7 @@ load_jump_tables:
 
 store_saved_registers: #expands the stack in order to store all saved registers, to be used in junction with restore...
 
-    lw t6, USED_REGISTERS(sp) #number of used registers is extracted from stack
+    lw t6, USED_REGISTERS (sp) #number of used registers is extracted from stack
     # li t0, -4
     # mul t0, t6, t0 
     # add sp, sp, t0
@@ -226,14 +272,14 @@ store_saved_registers: #expands the stack in order to store all saved registers,
     ssr_case_1:
         sw s0, 4(sp)
 
-    sw t6, USED_REGISTERS(sp) #number of used registers is inserted on top of stack
+    sw t6, USED_REGISTERS (sp) #number of used registers is inserted on top of stack
     
     ret
 
 
 restore_saved_registers: #ectracts all previously saved registers from the stack and shrinks it, to be used in junction with store...
 
-    lw t0, USED_REGISTERS(sp)
+    lw t0, USED_REGISTERS (sp)
     la t1, rsr_jump_table
     #    mul t0, t1, t0 #stack_shift = 4 * register_needed
     slli t0, t0, 2
@@ -283,6 +329,25 @@ strlen:
         addi a0, a0, 1
         j strlen_loop
     end_strlen_loop:
+    ret
+
+
+#a0-a5: untouched
+#a6: n used_registers
+#a7: return address
+push_stack:
+    addi sp, sp, -BASE_STACK
+    sw a7, RET_ADDR (sp)
+    sw a6, USED_REGISTERS (sp)
+
+    tail store_saved_registers
+
+pop_stack:
+    call restore_saved_registers
+    
+    lw ra, RET_ADDR (sp)
+    addi sp, sp, BASE_STACK
+
     ret
 
 
@@ -354,11 +419,11 @@ btoa:
 #a0: src #a1: dest #a2: size
 strlncpy:
     li t0, 0
-    bge x0, a2, strlcpy_return #size <= 0
+    bge x0, a2, strlncpy_return #size <= 0
     
     addi t6, a2, -1
-    bge t0, t6, strlcpy_null_terminate #if size - 1 has been reached
-    strlcpy_loop:
+    bge t0, t6, strlncpy_null_terminate #if size - 1 has been reached
+    strlncpy_loop:
 
         lb t1, 0(a0)
         addi a0, a0, 1
@@ -366,26 +431,49 @@ strlncpy:
         sb t1, 0(a1)
         addi a1, a1, 1 #*dest++ = *src++
 
-        beq x0, t1, strlcpy_return #if the string was fully copied
+        beq x0, t1, strlncpy_return #if the string was fully copied
         addi t0, t0, 1
-        blt t0, t6, strlcpy_loop #if size - 1 has not been reached
+        blt t0, t6, strlncpy_loop #if size - 1 has not been reached
 
     
-    strlcpy_null_terminate:
+    strlncpy_null_terminate:
     
     sb x0, 0(a0)
     # addi t0, t0, 1
 
-    strlcpy_return:
+    strlncpy_return:
     
     mv a0, t0
     ret    
     
 #return : #a0: length of copied string
 
+#a0: src a1: len
+strndup:
+    addi sp, sp, -4
+    sw ra, 0(sp)
 
+    addi sp, sp, -8
+    sw a0, 0(sp)
+    addi a1, a1, 1
+    sw a1, 4(sp)
 
+    mv a0, a1
+    call malloc
 
+    beq x0, a0, strndup_return
+
+    mv a1, a0
+    lw a0, 0(sp) 
+    lw a2, 4(sp)
+    call strlncpy
+
+    strndup_return:
+    addi sp, sp, 8
+
+    lw ra, 0(sp)
+    addi sp, sp, 4
+    ret
 
 
 #args:
@@ -398,12 +486,9 @@ strlncpy:
 #s4: i
 # m4_define(STR_MAP_UR, 5)
 str_map:
-    addi sp, sp, -BASE_STACK
-    sw ra, RET_ADDR(sp)
-
-    li t0, STR_MAP_UR
-    sw t0, USED_REGISTERS(sp)
-    call store_saved_registers
+    li a6, STR_MAP_UR
+    mv a7, ra
+    call push_stack
 
     
     mv s1, a0
@@ -430,10 +515,7 @@ str_map:
     sb x0, 0(t0) #null terminate new string
     mv a0, s2 #return dest
 
-    call restore_saved_registers
-    lw ra, RET_ADDR(sp)
-    addi sp, sp, BASE_STACK
-    ret
+    tail pop_stack
 
 #a0: address
 #a1: size 
@@ -576,8 +658,6 @@ caesar_decypher:
     tail caesar
 
 
-
-
 #args:
 #a0: src a1: dest a2: sostK
 #s0: unused
@@ -586,12 +666,9 @@ caesar_decypher:
 # m4_define(CAESAR_UR, 3)
 
 caesar:
-    addi sp, sp, -BASE_STACK
-    sw ra, RET_ADDR(sp)
-    li t0, CAESAR_UR
-    sw t0, USED_REGISTERS(sp)
-
-    call store_saved_registers
+    mv a7, ra
+    li a6, CAESAR_UR
+    call push_stack
 
     mv s1, a0
     mv s2, a1
@@ -607,10 +684,7 @@ caesar:
     la a2, caesar_sost
     call str_map
 
-    call restore_saved_registers
-    lw ra, RET_ADDR(sp)
-    addi sp, sp, BASE_STACK
-    ret
+    tail pop_stack
 
 # calls str_map with custom function argument, the function uses the argument value to execute caesar's cypher
 # such value is written into the program's text section at runtime
@@ -718,14 +792,11 @@ curry_word:
 # m4_define(BLOCK_STACK, 4)
 # m4_define(BLOCK_UR, 4)
 block:
-    addi sp, sp, -BASE_STACK
-    sw ra, RET_ADDR(sp)
+    li a6, BLOCK_UR
+    mv a7, ra
+    call push_stack
 
-    li t0, BLOCK_UR
-    sw t0, USED_REGISTERS(sp)
-    call store_saved_registers
-
-    addi sp, sp, -BLOCK_UR
+    addi sp, sp, -BLOCK_STACK
 
     mv s1, a0 #src_str
     mv s2, a1 #dest_str
@@ -742,8 +813,6 @@ block:
     la a0, block_encrypt_load_i
     call curry_word
 
-
-
     mv a0, s1 #src
     mv a1, s2 #dest
     la a2, block_encrypt
@@ -751,13 +820,9 @@ block:
     call str_map
 
     addi sp, sp, BLOCK_STACK
-    call restore_saved_registers
-    lw ra, RET_ADDR(sp)
-    addi sp, sp, -BASE_STACK
 
-    ret
+    tail pop_stack
 
-#\sadd(\s+)\b([a-z][a-z]|[0-9])\b,((\s+)(\b([a-z][a-z]|[0-9])\b,+(\s+)x0)|(x0,(\s+\b([a-z][a-z]|[0-9])\b)))
 
 arena_init:
         la t0, arena_in_use
@@ -785,8 +850,6 @@ arena_clear:
     ret
 
 
-
-
 arena_safeguard:
     mv a0, x0
     ret
@@ -801,16 +864,14 @@ arena_alloc:
     lb t0, arena_in_use
     beq x0, t0, arena_safeguard #automatically fails if the arena is not in use
     
-    addi sp, sp, -BASE_STACK
-    sw ra, RET_ADDR(sp)
-
-    li t0, ARENA_ALLOC_UR
-    sw t0, USED_REGISTERS(sp) 
-    call store_saved_registers
-    mv s1, x0 #ret_addr = null
-    addi sp, sp, -ARENA_ALLOC_STACK
-
+    li a6, ARENA_ALLOC_UR
+    mv a7, ra
+    call push_stack
     
+    addi sp, sp, -ARENA_ALLOC_STACK
+    
+    mv s1, x0 #ret_addr = null
+
     mv a1, a0
 
     lw t1, arena_alloc_size
@@ -833,12 +894,10 @@ arena_alloc:
 
     arena_alloc_return:
 
-        mv a0, s1
-        addi sp, sp, ARENA_ALLOC_STACK
-        call restore_saved_registers
-        lw ra, RET_ADDR(sp)
-        addi sp, sp, BASE_STACK
-        ret
+    mv a0, s1
+    addi sp, sp, ARENA_ALLOC_STACK
+    
+    tail pop_stack
 
 #return: a0: mem_block_address
 
@@ -848,11 +907,9 @@ arena_alloc:
 #s2: list_node **addr;
 # m4_define(ADD_OCCURRENCE_UR, 3)
 add_occurrence:
-    addi sp, sp, -BASE_STACK
-    sw ra, RET_ADDR(sp)
-    li t0, ADD_OCCURRENCE_UR
-    sw t0, USED_REGISTERS(sp)
-    call store_saved_registers
+    li a6, ADD_OCCURRENCE_UR
+    mv a7, ra
+    call push_stack
 
     lw t0, 0(a1)                #list_node *node = *addr;
     mv s1, a0
@@ -880,11 +937,7 @@ add_occurrence:
     li a0, 1 #retval = true
 
     add_occurrence_return:
-    call restore_saved_registers
-    lw ra, RET_ADDR(sp)
-    addi sp, sp, BASE_STACK
-
-    ret
+    tail pop_stack
 
 #return: a0: true/false depending on the success of allocation
 
@@ -898,12 +951,10 @@ add_occurrence:
 # m4_define(ECO_STACK, 8)
 # m4_define(ECO_UR, 6)
 encrypt_char_occurrence:
-    addi sp, sp, -BASE_STACK
-    sw ra, RET_ADDR(sp)
+    li a6, ECO_UR
+    mv a7, ra
+    call push_stack
 
-    li t0, ECO_UR
-    sw t0, USED_REGISTERS(sp)
-    call store_saved_registers
     addi sp, sp, -ECO_STACK
     
     mv s1, a1
@@ -933,7 +984,7 @@ encrypt_char_occurrence:
         add a1, s2, s4 #dest = dest + copied_characters
 
         call strlncpy
-        add s4, s4, a0 # copied_characters += strlcpy(str_num, dest + copied_characters, dest_size - copied_characters)
+        add s4, s4, a0 # copied_characters += strlncpy(str_num, dest + copied_characters, dest_size - copied_characters)
         
 
         lw s1, 1(s1) #occurrece_list = occurrece_list->next
@@ -950,11 +1001,7 @@ encrypt_char_occurrence:
     mv a0, s4        #return written characters
     sb x0, 0(t0)       #null terminate string
     addi sp, sp, ECO_STACK
-    call restore_saved_registers
-    lw ra, RET_ADDR(sp)
-    addi sp, sp, -BASE_STACK
-    
-    ret
+    tail pop_stack
 
 #return: a0: copied_characters
 
@@ -969,13 +1016,10 @@ encrypt_char_occurrence:
 # m4_define(GOM_STACK, 4)
 # m4_define(GOM_UR, 6)
 get_occurrence_map:
-    addi sp, sp, -BASE_STACK
-    sw ra, RET_ADDR(sp)
+    mv a7, ra
+    li a6, GOM_UR
+    call push_stack
 
-    li t0, GOM_UR
-    sw t0, USED_REGISTERS(sp)
-
-    call store_saved_registers
     addi sp, sp, -GOM_STACK
 
     mv s2, a0
@@ -1029,10 +1073,7 @@ get_occurrence_map:
     occurrence_map_end:
 
     addi sp, sp, GOM_STACK
-    call restore_saved_registers
-    lw ra, RET_ADDR(sp)
-    addi sp, sp, BASE_STACK
-    ret
+    tail pop_stack
 
 #return : a0: occurrence_map a1: map_size
 
@@ -1049,12 +1090,9 @@ get_occurrence_map:
 # m4_define(OCCT_STACK, 4)
 # m4_define(OCCT_UR, 8)
 occurrence_construct_cypher_text:
-    addi sp, sp, -BASE_STACK
-    sw ra, RET_ADDR(sp)
-
-    li t0, OCCT_UR
-    sw t0, USED_REGISTERS(sp)
-    call store_saved_registers
+    li a6, OCCT_UR
+    mv a7, ra
+    call push_stack
 
     addi sp, sp, -OCCT_STACK
 
@@ -1113,12 +1151,7 @@ occurrence_construct_cypher_text:
     mv a0, s1
 
     addi sp, sp, OCCT_STACK
-    call restore_saved_registers
-    lw ra, RET_ADDR(sp)
-    addi sp, sp, -BASE_STACK
-
-    ret
-
+    tail pop_stack
 
 
 #a0: src a1:dest
@@ -1132,12 +1165,9 @@ occurrence_construct_cypher_text:
 # m4_define(OCCURRENCE_UR, 4)
 
 occurrence:
-
-    addi sp, sp, -BASE_STACK
-    sw ra, RET_ADDR(sp)
-    li t0, OCCURRENCE_UR
-    sw t0, USED_REGISTERS(sp)
-    call store_saved_registers
+    mv a7, ra
+    li a6, OCCURRENCE_UR
+    call pop_stack
 
     addi sp, sp, -OCCURRENCE_STACK_SIZE 
 
@@ -1172,16 +1202,15 @@ occurrence:
 
     end_occurrence:
     addi sp, sp, OCCURRENCE_STACK_SIZE
-    call restore_saved_registers
-
-    lw ra, RET_ADDR(sp)
-    addi sp, sp, BASE_STACK
-    ret
+    tail pop_stack
 #return: a0: dest
 
 
+#a0: cypher_text
+occurrence_decypher:
 
 
+#return: a0: plain text
 
 #a0: one character
 
@@ -1234,18 +1263,19 @@ dictionary_function:
 
 
 
+
 #args:
 #a0: src a1: dest a2:dictionary_function
 dictionary:
-    addi sp, sp, -BASE_STACK
-    sw ra, RET_ADDR(sp)
+    #addi sp, sp, -BASE_STACK
+    #sw ra, RET_ADDR (sp)
     
-    call str_map
+    #call str_map
 
-    lw ra, RET_ADDR(sp)
-    addi sp, sp, BASE_STACK
-    ret
-
+    #lw ra, RET_ADDR (sp)
+    #addi sp, sp, BASE_STACK
+    #ret
+    tail str_map
 
 
 #args:
@@ -1260,12 +1290,9 @@ dictionary:
 # m4_define(INV_STACK, 4)
 # m4_define(INV_UR, 7)
 inversion:
-    addi sp, sp, -BASE_STACK
-    sw ra, RET_ADDR(sp)
-
-    li t0, INV_UR
-    sw t0, USED_REGISTERS(sp)
-    call store_saved_registers
+    li a6, INV_UR
+    mv a7, ra
+    call push_stack
     addi sp, sp, -INV_STACK
     # prologue
 
@@ -1304,12 +1331,7 @@ inversion:
     sb x0, 0(t0) #null terminate
     
     addi sp, sp, INV_STACK
-    call restore_saved_registers
-    lw ra, RET_ADDR(sp)
-    addi sp, sp, BASE_STACK
-    ret
-
-
+    tail pop_stack
 
 
 #
@@ -1337,20 +1359,22 @@ char_sanitizer:
 #trunkates cypher at the first character that isn't allowed by project requirement
 #lazy but quick to write
 sanitize_cypher:
-    addi sp, sp, -BASE_STACK
-    sw ra, RET_ADDR(sp)
+    # addi sp, sp, -BASE_STACK
+    # sw ra, RET_ADDR (sp)
     
     mv a1, a0
     la a2, char_sanitizer
-    call str_map
+    # call str_map
+    tail str_map
+    
+    # lw ra, RET_ADDR (sp)
+    # addi sp, sp, BASE_STACK
+    # ret
+    
+    
+    
 
-    
-    lw ra, RET_ADDR(sp)
-    addi sp, sp, BASE_STACK
-    ret
-    
-    
-    
+#a0: t_cypher_data: {plaintext, cypher, sostK, blocKey, dictionary}
 
 #args:
 #a0: plaintext, a1:cypher, a2: sostK, a3: blocKey, a4: dictionary function pointer a5: bool encrypt
@@ -1377,15 +1401,12 @@ sanitize_cypher:
 # m4_define(CYHPER_STACK, 204)
 # m4_define(CYPHER_UR,  9)
 cypher_iter:
-    addi sp, sp, -BASE_STACK
-    sw ra, RET_ADDR(sp)
-    li t0, CYPHER_UR
-    sw t0, USED_REGISTERS(sp)
+    mv a7, ra
+    li a6, CYPHER_UR
+    call push_stack
 
-    call store_saved_registers
     addi sp, sp, -CYHPER_STACK
     # stack management prologue
-
 
 
     mv s1, a0
@@ -1466,8 +1487,16 @@ cypher_iter:
             j end_cypher_switch
         end_cypher_switch:
 
-        mv s2, s1
         mv s1, a0 #to encrypt = retval
+        mv s2, s1
+        
+        la t0, heap_start
+        blt s2, t0, src_not_in_heap #src string is not to be freed
+
+
+
+        src_not_in_heap:
+
         li a7, 4
         ecall # prints encrypted string
         la a0, newline
@@ -1483,7 +1512,4 @@ cypher_iter:
     
     # restoring stack and return epilogue
     addi sp, sp, CYHPER_STACK
-    call restore_saved_registers
-    lw ra, RET_ADDR(sp)
-    addi sp, sp, BASE_STACK
-    ret
+    tail pop_stack

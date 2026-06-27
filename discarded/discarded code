@@ -83,3 +83,9 @@ mul t3, t3, t4              #(len - 3) * -4 -> (3 - len) * 4
     lw ra, 4(sp)
     addi sp, sp, 8
     ret
+
+
+
+
+
+    #\sadd(\s+)\b([a-z][a-z]|[0-9])\b,((\s+)(\b([a-z][a-z]|[0-9])\b,+(\s+)x0)|(x0,(\s+\b([a-z][a-z]|[0-9])\b)))

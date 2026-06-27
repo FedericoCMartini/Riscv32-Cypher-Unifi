@@ -23,11 +23,15 @@ ${REPLACE_SCRIPT} ${1:$(ASM_DIR)%${ASM_PATTERN}=$(SRC_DIR)%${SRC_PATTERN}} | dif
 endef
 
 M4_PROLOGUE="m4_changecom(\`/*', \`*/')"
+M4_COMBINE="m4_define(COMBINE, 1)"
 
 REPLACE_SCRIPT=echo -n $(M4_PROLOGUE) | m4 -P -
 
-
 all: $(NAME)
+
+$(ASM_DIR)/$(NAME)$(ASM_PATTERN): $(SRC_DIR)/$(NAME)$(SRC_PATTERN) $(SRC_DIR)/$(SIDE)$(SRC_PATTERN) | $(ASM_DIR)
+	echo -n $(M4_PROLOGUE) $(M4_COMBINE) | m4 -P - $^ > $@
+
 
 #redirects asm to asm_dir
 %$(ASM_PATTERN):
