@@ -34,7 +34,7 @@ $(ASM_DIR)/$(NAME)$(ASM_PATTERN): $(SRC_DIR)/$(NAME)$(SRC_PATTERN) $(SRC_DIR)/$(
 
 
 #redirects asm to asm_dir
-%$(ASM_PATTERN):
+$(BINARIES:%=%$(ASM_PATTERN)): %$(ASM_PATTERN):
 	@make --no-print-directory $(ASM_DIR)/$*$(ASM_PATTERN)
 
 $(ASM_DIR)/%$(ASM_PATTERN): $(SRC_DIR)/%$(SRC_PATTERN) | $(ASM_DIR)
@@ -70,7 +70,6 @@ testcompile_%: $(BIN_DIR)/%  ;
 	
 testcompile:
 	make -is --no-print-directory testcompile_$(NAME) testcompile_$(SIDE)
-	
 
 test: testcompile
 
