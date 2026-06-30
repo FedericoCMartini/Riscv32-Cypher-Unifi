@@ -1,4 +1,4 @@
-SHELL=/bin/sh
+SHELL=/bin/bash
 
 SRC_PATTERN=.m4
 ASM_PATTERN=.s
@@ -22,15 +22,51 @@ ${REPLACE_SCRIPT} ${1:$(ASM_DIR)%${ASM_PATTERN}=$(SRC_DIR)%${SRC_PATTERN}} | dif
 
 endef
 
+# 1 is all m4_commands. 2 is for flags
+invoke_m4=echo -n $(1) | m4 -P $(if $2,$2 )-
+
+m4_trace="m4_traceon(\`$1')"
+
+
+m4_dump="m4_dumpdef(\`$1')"
+
+READ_MACROS_COMMAND=read -p "Macros you want to trace: " macros && echo -n $$macros
+
+define m4_divert_call=
+$(call invoke_m4,$(1) "m4_divert(-1)",$(2)) $(4) <(echo "m4_divert" $(3))
+endef
+
+define trace_macros=
+$(let args, $(shell $(READ_MACROS_COMMAND)),$\
+	$(call m4_divert_call,$\
+		$(M4_PROLOGUE)\
+		$(M4_DEBUG)\
+		$(foreach macro,$(args),$(call m4_trace,$(macro))),$\
+		,\
+		$(foreach macro,$(args),$(call m4_dump,$(macro))),$\
+		$1$\
+	)$(newline)$\
+	$(foreach macro,$(args),grep -n $(macro) $1$(newline))$\
+)
+endef
+
+M4_DEBUG_FLAGS=-daceflqt
+
 M4_PROLOGUE="m4_changecom(\`/*', \`*/')"
 M4_COMBINE="m4_define(COMBINE, 1)"
+M4_DEBUG="m4_debugfile"
+M4_TRACE="m4_traceon"
 
-REPLACE_SCRIPT=echo -n $(M4_PROLOGUE) | m4 -P -
+COMBINE_MACROS=$(M4_PROLOGUE) $(M4_COMBINE)
+
+REPLACE_SCRIPT=$(call invoke_m4, $(M4_PROLOGUE),)
+
+COMBINE_SCRIPT=$(call invoke_m4,$(COMBINE_MACROS),)
 
 all: $(NAME)
 
 $(ASM_DIR)/$(NAME)$(ASM_PATTERN): $(SRC_DIR)/$(NAME)$(SRC_PATTERN) $(SRC_DIR)/$(SIDE)$(SRC_PATTERN) | $(ASM_DIR)
-	echo -n $(M4_PROLOGUE) $(M4_COMBINE) | m4 -P - $^ > $@
+	$(COMBINE_SCRIPT) $^ > $@
 
 
 #redirects asm to asm_dir
@@ -66,6 +102,14 @@ dirclean:
 fclean: clean binclean dirclean
 
 
+
+debug_m4_%: $(SRC_DIR)/%$(SRC_PATTERN)
+	$(call invoke_m4, $(M4_PROLOGUE) $(M4_DEBUG), $(M4_DEBUG_FLAGS)) $< > /dev/null
+
+trace_macro_%: $(SRC_DIR)/%$(SRC_PATTERN)
+
+	$(call trace_macros, $<) 
+
 testcompile_%: $(BIN_DIR)/%  ;
 	
 testcompile:
@@ -73,8 +117,14 @@ testcompile:
 
 test: testcompile
 
-.PHONY: fclean binclean dirclean clean all diff test testcompile $(NAME) $(SIDE) %$(ASM_PATTERN)
+.PHONY: fclean binclean dirclean clean all diff test testcompile $(NAME) $(SIDE) %$(ASM_PATTERN) debug_m4_% trace_macro_%
 
 #.PRECIOUS: $(ASM_DIR)/%$(ASM_PATTERN)
 
-.IGNORE: testcompile testcompile_$(NAME) testcompile_$(SIDE)
+.IGNORE: testcompile testcompile_$(NAME) testcompile_$(SIDE) debug_m4_$(NAME) 
+
+blank:=
+define newline
+
+$(blank)
+endef
