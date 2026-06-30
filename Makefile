@@ -30,14 +30,39 @@ m4_trace="m4_traceon(\`$1')"
 
 m4_dump="m4_dumpdef(\`$1')"
 
-READ_MACROS_COMMAND=read -p "Macros you want to trace: " macros && echo -n $$macros
+READ_MACROS_COMMAND=read -p "Macros you want to trace: " macros && echo -n $${macros^^}
 
 define m4_divert_call=
 $(call invoke_m4,$(1) "m4_divert(-1)",$(2)) $(4) <(echo "m4_divert" $(3))
 endef
 
+#1: whole text, 2: word to highlight 3:apply effect 4:remove effect
+highlight=$(subst $2,$(3)$2$(4),$1)
+
+# define grep_search=
+# $(let result,$(shell grep -n $(1) $(2)$(newline)),$\
+# 	$(if $(result),$\
+# 		$(result),$\
+# 		$(red)Macro not found$(ct_reset)$\
+# 	)$\
+# )
+# endef
+grep_search=./grep_search.sh $1 $2
+
+# $(call highlight,$(result),$(1),$(bold)$(red),$(rbold)$(ct_reset))
+
+# 1: macro name #2: file name #3: macro description #4: file description 
+define search_macro=
+@echo ""$(newline)$\
+@echo -e "Searching for $(3) $(bold)$(1)$(rbold) in $(4)"$(newline)$\
+@set -f$(newline)$\
+@$(call grep_search,$1,$2)$(newline)$\
+@set +f$(newline)
+endef
+
+
 define trace_macros=
-$(let args, $(shell $(READ_MACROS_COMMAND)),$\
+$(let args,$(shell $(READ_MACROS_COMMAND)),$\
 	$(call m4_divert_call,$\
 		$(M4_PROLOGUE)\
 		$(M4_DEBUG)\
@@ -46,7 +71,16 @@ $(let args, $(shell $(READ_MACROS_COMMAND)),$\
 		$(foreach macro,$(args),$(call m4_dump,$(macro))),$\
 		$1$\
 	)$(newline)$\
-	$(foreach macro,$(args),grep -n $(macro) $1$(newline))$\
+	$(foreach macro,$(args),$\
+		$(call search_macro,$(macro),$1,"macro","original file")$\
+		)$\
+	$(let tmp_file,$(shell mktemp),$\
+		@$(REPLACE_SCRIPT) $1 > $(tmp_file)$(newline)$\
+		$(foreach macro,$(args),$\
+			$(call search_macro,$(macro),$(tmp_file),"failed substitution of","asm file")$\
+			)$\
+		@rm $(tmp_file)$\
+	)$\
 )
 endef
 
@@ -67,7 +101,6 @@ all: $(NAME)
 
 $(ASM_DIR)/$(NAME)$(ASM_PATTERN): $(SRC_DIR)/$(NAME)$(SRC_PATTERN) $(SRC_DIR)/$(SIDE)$(SRC_PATTERN) | $(ASM_DIR)
 	$(COMBINE_SCRIPT) $^ > $@
-
 
 #redirects asm to asm_dir
 $(BINARIES:%=%$(ASM_PATTERN)): %$(ASM_PATTERN):
@@ -107,7 +140,6 @@ debug_m4_%: $(SRC_DIR)/%$(SRC_PATTERN)
 	$(call invoke_m4, $(M4_PROLOGUE) $(M4_DEBUG), $(M4_DEBUG_FLAGS)) $< > /dev/null
 
 trace_macro_%: $(SRC_DIR)/%$(SRC_PATTERN)
-
 	$(call trace_macros, $<) 
 
 testcompile_%: $(BIN_DIR)/%  ;
@@ -117,14 +149,22 @@ testcompile:
 
 test: testcompile
 
-.PHONY: fclean binclean dirclean clean all diff test testcompile $(NAME) $(SIDE) %$(ASM_PATTERN) debug_m4_% trace_macro_%
+.PHONY: fclean binclean dirclean clean all diff test testcompile $(NAME) $(SIDE) %$(ASM_PATTERN) debug_m4_% trace_macro_% search
 
 #.PRECIOUS: $(ASM_DIR)/%$(ASM_PATTERN)
 
-.IGNORE: testcompile testcompile_$(NAME) testcompile_$(SIDE) debug_m4_$(NAME) 
+.IGNORE: testcompile testcompile_$(NAME) testcompile_$(SIDE) debug_m4_$(NAME) trace_macro_$(NAME)
 
 blank:=
 define newline
 
 $(blank)
 endef
+
+bold="\\e[1m"
+rbold="\\e[22m"
+
+red="\\e[38;2;255;0;0m"
+ct_reset="\\e[m"
+
+sanitize=$(subst `,\`,$1)
