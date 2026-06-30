@@ -33,21 +33,21 @@
 # add 8 to sp
 # return
 
-# m4_define(BASE_STACK, 8)
-# m4_define(RET_ADDR, 4)
-# m4_define(USED_REGISTERS, 0)
-# m4_define(A, 65)
-# m4_define(Z, 90)
-# m4_define(a, 97)
-# m4_define(z, 122)
-# m4_define(ASCII_0, 48)
-# m4_define(ASCII_9, 57)
+# m4_define(`BASE_STACK', 8)
+# m4_define(`RET_ADDR', 4)
+# m4_define(`USED_REGISTERS', 0)
+# m4_define(`A', 65)
+# m4_define(`Z', 90)
+# m4_define(`a', 97)
+# m4_define(`z', 122)
+# m4_define(`ASCII_0', 48)
+# m4_define(`ASCII_9', 57)
 # m4_define(`MIN_CHAR', 32)
 # m4_define(`MAX_CHAR', 127)
 # m4_define(`SPACE', 32)
 
 
-# m4_define(CYPHER_DATA_SIZE, 20)
+# m4_define(`CYPHER_DATA_SIZE', 20)
 
 .text
 .global _start
@@ -621,7 +621,7 @@ caesar_encrypt:
 
 # m4_define(`BLOCK_I_REGISTER', 31) x31 -> t6
 # m4_define(`BLOCK_STR_REGISTER', 5) x5 -> t0
-# m4_define(`BLOCK_BOOL_REGISTER, 7) x7 -> t2
+# m4_define(`BLOCK_BOOL_REGISTER', 7) x7 -> t2
 
 #a0: character #ONLY CALL AFTER USING CURRY WORD :
 block_map:
