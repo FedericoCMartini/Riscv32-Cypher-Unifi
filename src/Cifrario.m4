@@ -1276,12 +1276,31 @@ atou:
     mv a0, t6
     ret
 
+#a0: str #a1
+strchr:
+    li t6, 0
+    lb t0, 0(a0)
+    beq t0, a1, strchr_end
+    beq x0, t0, strchr_end
+    strchr_loop:
+        addi t6, t6, 1
+        add t0, a0, t6
+        lb t0, 0(t0)
 
-# m4_define(`OCCURRENCE_PT_UR', 3)
+        bne t0, a1, strchr_end
+        bne t0, x0, strchr_end
+
+    strchr_end:
+    mv a0, t6
+
+    ret
+
+# m4_define(`OCCURRENCE_PT_UR', 5)
 #a0: cypher_text
 #s1: str
 #s2: max_num
 #s3: i
+#s4: '-'
 occurrence_plaintext_size:
     li a6, OCCURRENCE_PT_UR
     mv a7, ra
@@ -1316,9 +1335,9 @@ occurrence_plaintext_size:
 
         add a0, s1, s3 #str + i
         call atou
-        blt s2, a0, next_dash #atou(&str[i] < max_num)
+        bge s2, a0, next_dash #(atou(&str[i]) < max_num)
         store_max:
-            mv s2, a0 #max_num = atou(&str[i] < max_num)
+            mv s2, a0 #max_num = atou(&str[i])
 
         j next_dash
 
@@ -1327,10 +1346,80 @@ occurrence_plaintext_size:
     tail pop_stack
 #return: a0: plaintext_len
 
+# m4_define(`RCBO_UR', 6)
+#a0: cypher_text, a1:dest, a2: iter_limit
+#s1: cypher_text
+#s2: dest
+#s3: i
+#s4: char
+#s5: iter_limit
+restore_char_by_occurrence:
+    li a6, RCBO_UR
+    mv a7, ra
+    call push_stack
 
+    mv s1, a0 #store cypher_text
+    mv s2, a1 #store dest
+    li s3, 2  #i = 2
+    lb s4, 0(s1) #char = cypher_text[0]
+    mv s5, a2
+
+    char_occurrence_loop:
+        add a0, s1, s3 #src + i
+        call atou
+
+        add t0, a0, s2
+        sb s4, 0(t0)# dest[atou(src + i)] = char
+    
+        add a0, s1, s3 #src + i
+        li a1, ASCII_- # '-'
+        call strchr #strchr(src + i, '-') advances to next '-'
+        add s3, a0, 1 #i = strchr(src + i, '-') + 1
+
+        blt s3, s5, char_occurrence_loop #while i < strchr(src, ' ')
+
+    restore_char_by_occurrence_end:
+
+    tail pop_stack
+
+# m4_define(`OCPT_UR', 6)
 #a0: src #a1: dest
+#a0: cypher_text
+#s1: str
+#s2: max_num
+#s3: i
+#s4: dest
+#s5: next_group
 occurrence_construct_plain_text:
-// to do
+    li a6, OCPT_UR
+    mv a7, ra
+    call push_stack
+
+    mv s1, a0 #store str
+    mv s2, x0 #max_num = 0
+    # mv s3, x0 #i = 0
+    mv s4, a1 #store dest
+    li s5, -1 #next_group = -1
+
+    occurrence_ct_iter:
+        addi s3, s5, 1 #i = next_group + 1
+        add a0, s1, s3 #src + i
+        li a1, SPACE   #' '
+        call strchr    #strchr(src + i, ' ')
+        mv s5, a0 #next_group = strchr(src + 1, ' ') #next space / str end
+
+        add a0, s1, s3  #src + i
+        mv a1, s4       #dest
+        mv a2, s5       #next_group
+        call restore_char_by_occurrence #restore...(src + i, dest, strchr(src + i, ' '))
+
+        add t0, s1, s5
+        lb t0, 0(t0)
+        bne x0, t0, occurrence_ct_iter
+
+    plaintext_size_ret:
+    mv a0, s2
+    tail pop_stack
 
 
 #m4_define(`OCCURRENCE_DECYPHER_UR', 3)
