@@ -10,7 +10,7 @@ BINARIES=$(NAME) $(SIDE)
 ASM_DIR=./asm
 SRC_DIR=./src
 BIN_DIR=./bin
-
+SCRIPT_DIR=./scripts
 OPT_DIR=$(ASM_DIR) $(BIN_DIR)
 
 
@@ -47,7 +47,7 @@ highlight=$(subst $2,$(3)$2$(4),$1)
 # 	)$\
 # )
 # endef
-grep_search=./grep_search.sh $1 $2
+grep_search=$(SCRIPT_DIR)/grep_search.sh $1 $2
 
 # $(call highlight,$(result),$(1),$(bold)$(red),$(rbold)$(ct_reset))
 
