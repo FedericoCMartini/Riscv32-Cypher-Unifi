@@ -97,7 +97,7 @@ COMBINE_MACROS=$(M4_PROLOGUE) $(M4_COMBINE)
 
 REPLACE_SCRIPT=$(call invoke_m4, $(M4_PROLOGUE),)
 
-JUMP_TABLE_SCRIPT=$(SCRIPT_DIR)/compile_jump_tables.pl
+JUMP_TABLE_SCRIPT=$(SCRIPT_DIR)/bake_jump_tables.pl
 
 COMBINE_SCRIPT=$(call invoke_m4,$(COMBINE_MACROS),)
 

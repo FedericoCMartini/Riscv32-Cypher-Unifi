@@ -1,5 +1,9 @@
 #!/bin/perl
 
+#ARGV[0] -> SRC FILE
+#ARGV[1] -> BINARY
+#ARGV[2] -> DESTINATION
+
 my $table = `riscv64-linux-gnu-nm $ARGV[1]`;
 my $file = $ARGV[0];
 # my $pattern = '/([0-9a-f]*)(?{ $symbol_hex = $^N })\s*([td])(?{ $symbol_section = $^N })\s*(\w*)(?{ $symbol_name = $^N })/';
@@ -31,6 +35,6 @@ close(OUT);
 # system "rm -f " . $file;
 # rename($file . '.bak', $file);
 
-system "rm -f " . $file . '.bak';
+# system "rm -f " . $file . '.bak';
 
 # cmd = `riscv64-linux-gnu-nm $1 | awk '/^$2$/ {print $1}'`
