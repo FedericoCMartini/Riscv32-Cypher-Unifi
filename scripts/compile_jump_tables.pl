@@ -1,13 +1,13 @@
 #!/bin/perl
 
-my $table = `riscv64-linux-gnu-nm ./bin/$ARGV[0]`;
-my $file = "./asm/" . $ARGV[0] . ".s";
+my $table = `riscv64-linux-gnu-nm $ARGV[1]`;
+my $file = $ARGV[0];
 # my $pattern = '/([0-9a-f]*)(?{ $symbol_hex = $^N })\s*([td])(?{ $symbol_section = $^N })\s*(\w*)(?{ $symbol_name = $^N })/';
 # use re 'eval';
 
-rename($file, $file . '.bak');
-open(IN, '<' . $file . '.bak') or die $!;
-open(OUT, '>' . $file) or die $!;
+# rename($file, $file . '.bak');
+open(IN, '<' . $file) or die $!;
+open(OUT, '>' . $ARGV[2]) or die $!;
 while(<IN>)
 {
     my $line = $_;
