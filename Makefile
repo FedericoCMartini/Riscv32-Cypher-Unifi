@@ -95,12 +95,15 @@ COMBINE_MACROS=$(M4_PROLOGUE) $(M4_COMBINE)
 
 REPLACE_SCRIPT=$(call invoke_m4, $(M4_PROLOGUE),)
 
+JUMP_TABLE_SCRIPT=$(SCRIPT_DIR)/compile_jump_tables.pl
+
 COMBINE_SCRIPT=$(call invoke_m4,$(COMBINE_MACROS),)
 
 all: $(NAME)
 
 $(ASM_DIR)/$(NAME)$(ASM_PATTERN): $(SRC_DIR)/$(NAME)$(SRC_PATTERN) $(SRC_DIR)/$(SIDE)$(SRC_PATTERN) | $(ASM_DIR)
 	$(COMBINE_SCRIPT) $^ > $@
+	$(JUMP_TABLE_SCRIPT) $^
 
 #redirects asm to asm_dir
 $(BINARIES:%=%$(ASM_PATTERN)): %$(ASM_PATTERN):
