@@ -401,7 +401,7 @@ best_fit_chunk_search:
         beq s3, x0, select_chunk #if smallest == null 
         
         lw t6, C_SIZE (s3) #loads size of smallest        
-        bge t5, t6, next_chunk #if (current.size >= smallest.size) skip
+        bge t1, t6, next_chunk #if (current.size >= smallest.size) skip
         
         select_chunk: #smallest_free_chunk = current_chunk
             mv s3, s2
