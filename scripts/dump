@@ -1,0 +1,1786 @@
+
+00000000 <_start>:
+    0:        10000517        auipc x10 0x10000
+    4:        0d450513        addi x10 x10 212
+    8:        fe810113        addi x2 x2 -24
+    c:        00010513        addi x10 x2 0
+    10:        00000097        auipc x1 0x0 <_start>
+    14:        058080e7        jalr x1 x1 88
+    18:        00050593        addi x11 x10 0
+    1c:        10000517        auipc x10 0x10000
+    20:        fe450513        addi x10 x10 -28
+    24:        00100613        addi x12 x0 1
+    28:        00001097        auipc x1 0x1
+    2c:        db0080e7        jalr x1 x1 -592
+    30:        00a12a23        sw x10 20 x2
+    34:        02a00663        beq x0 x10 44 <exit>
+    38:        00010593        addi x11 x2 0
+    3c:        00000613        addi x12 x0 0
+    40:        00001097        auipc x1 0x1
+    44:        d98080e7        jalr x1 x1 -616
+    48:        00001097        auipc x1 0x1
+    4c:        38c080e7        jalr x1 x1 908
+    50:        01412503        lw x10 20 x2
+    54:        00001097        auipc x1 0x1
+    58:        380080e7        jalr x1 x1 896
+    5c:        01810113        addi x2 x2 24
+
+00000060 <exit>:
+    60:        00a00893        addi x17 x0 10
+    64:        00000073        ecall
+
+00000068 <cypher_data_init>:
+    68:        10000297        auipc x5 0x10000
+    6c:        06c28293        addi x5 x5 108
+    70:        10000317        auipc x6 0x10000
+    74:        06e30303        lb x6 110 x6
+    78:        10000397        auipc x7 0x10000
+    7c:        06238393        addi x7 x7 98
+    80:        00001e17        auipc x28 0x1
+    84:        c10e0e13        addi x28 x28 -1008
+    88:        00552023        sw x5 0 x10
+    8c:        00652223        sw x6 4 x10
+    90:        00752423        sw x7 8 x10
+    94:        01c52623        sw x28 12 x10
+    98:        00008067        jalr x0 x1 0
+
+0000009c <store_saved_registers>:
+    9c:        00012f83        lw x31 0 x2
+    a0:        002f9293        slli x5 x31 2
+    a4:        10000317        auipc x6 0x10000
+    a8:        05030313        addi x6 x6 80
+    ac:        40510133        sub x2 x2 x5
+    b0:        405302b3        sub x5 x6 x5
+    b4:        03028393        addi x7 x5 48
+    b8:        0003a283        lw x5 0 x7
+    bc:        00028067        jalr x0 x5 0
+
+000000c0 <ssr_case_12>:
+    c0:        03b12823        sw x27 48 x2
+
+000000c4 <ssr_case_11>:
+    c4:        03a12623        sw x26 44 x2
+
+000000c8 <ssr_case_10>:
+    c8:        03912423        sw x25 40 x2
+
+000000cc <ssr_case_9>:
+    cc:        03812223        sw x24 36 x2
+
+000000d0 <ssr_case_8>:
+    d0:        03712023        sw x23 32 x2
+
+000000d4 <ssr_case_7>:
+    d4:        01612e23        sw x22 28 x2
+
+000000d8 <ssr_case_6>:
+    d8:        01512c23        sw x21 24 x2
+
+000000dc <ssr_case_5>:
+    dc:        01412a23        sw x20 20 x2
+
+000000e0 <ssr_case_4>:
+    e0:        01312823        sw x19 16 x2
+
+000000e4 <ssr_case_3>:
+    e4:        01212623        sw x18 12 x2
+
+000000e8 <ssr_case_2>:
+    e8:        00912423        sw x9 8 x2
+
+000000ec <ssr_case_1>:
+    ec:        00812223        sw x8 4 x2
+    f0:        01f12023        sw x31 0 x2
+    f4:        00008067        jalr x0 x1 0
+
+000000f8 <restore_saved_registers>:
+    f8:        00012283        lw x5 0 x2
+    fc:        10000317        auipc x6 0x10000
+    100:        02830313        addi x6 x6 40
+    104:        00229293        slli x5 x5 2
+    108:        03030393        addi x7 x6 48
+    10c:        40538e33        sub x28 x7 x5
+    110:        000e2e03        lw x28 0 x28
+    114:        000e0067        jalr x0 x28 0
+
+00000118 <rsr_case_12>:
+    118:        03012d83        lw x27 48 x2
+
+0000011c <rsr_case_11>:
+    11c:        02c12d03        lw x26 44 x2
+
+00000120 <rsr_case_10>:
+    120:        02812c83        lw x25 40 x2
+
+00000124 <rsr_case_9>:
+    124:        02412c03        lw x24 36 x2
+
+00000128 <rsr_case_8>:
+    128:        02012b83        lw x23 32 x2
+
+0000012c <rsr_case_7>:
+    12c:        01c12b03        lw x22 28 x2
+
+00000130 <rsr_case_6>:
+    130:        01812a83        lw x21 24 x2
+
+00000134 <rsr_case_5>:
+    134:        01412a03        lw x20 20 x2
+
+00000138 <rsr_case_4>:
+    138:        01012983        lw x19 16 x2
+
+0000013c <rsr_case_3>:
+    13c:        00c12903        lw x18 12 x2
+
+00000140 <rsr_case_2>:
+    140:        00812483        lw x9 8 x2
+
+00000144 <rsr_case_1>:
+    144:        00412403        lw x8 4 x2
+    148:        00510133        add x2 x2 x5
+    14c:        00008067        jalr x0 x1 0
+
+00000150 <strlen>:
+    150:        00050293        addi x5 x10 0
+    154:        00000513        addi x10 x0 0
+
+00000158 <strlen_loop>:
+    158:        00a28333        add x6 x5 x10
+    15c:        00030383        lb x7 0 x6
+    160:        00038663        beq x7 x0 12 <end_strlen_loop>
+    164:        00150513        addi x10 x10 1
+    168:        ff1ff06f        jal x0 -16 <strlen_loop>
+
+0000016c <end_strlen_loop>:
+    16c:        00008067        jalr x0 x1 0
+
+00000170 <push_stack>:
+    170:        ff810113        addi x2 x2 -8
+    174:        01112223        sw x17 4 x2
+    178:        01012023        sw x16 0 x2
+    17c:        00000317        auipc x6 0x0 <_start>
+    180:        f2030067        jalr x0 x6 -224
+
+00000184 <pop_stack>:
+    184:        00000097        auipc x1 0x0 <_start>
+    188:        f74080e7        jalr x1 x1 -140
+    18c:        00412083        lw x1 4 x2
+    190:        00810113        addi x2 x2 8
+    194:        00008067        jalr x0 x1 0
+
+00000198 <btoa>:
+    198:        0ff57513        andi x10 x10 255
+    19c:        10000f97        auipc x31 0x10000
+    1a0:        fb8faf83        lw x31 -72 x31
+    1a4:        00a02e33        slt x28 x0 x10
+    1a8:        00052eb3        slt x29 x10 x0
+    1ac:        00050293        addi x5 x10 0
+    1b0:        41de0e33        sub x28 x28 x29
+    1b4:        02ae0533        mul x10 x28 x10
+    1b8:        02af8333        mul x6 x31 x10
+    1bc:        06400f13        addi x30 x0 100
+    1c0:        41335313        srai x6 x6 19
+    1c4:        026f83b3        mul x7 x31 x6
+    1c8:        00a00e93        addi x29 x0 10
+    1cc:        4133d393        srai x7 x7 19
+    1d0:        00058f93        addi x31 x11 0
+    1d4:        000e5863        bge x28 x0 16 <btoa_positive>
+    1d8:        02d00e13        addi x28 x0 45
+    1dc:        01cf8023        sb x28 0 x31
+    1e0:        001f8f93        addi x31 x31 1
+
+000001e4 <btoa_positive>:
+    1e4:        03d54c63        blt x10 x29 56 <btoa_units>
+    1e8:        03e54063        blt x10 x30 32 <btoa_tens>
+    1ec:        03038e13        addi x28 x7 48
+    1f0:        01cf8023        sb x28 0 x31
+    1f4:        03d383b3        mul x7 x7 x29
+    1f8:        001f8f93        addi x31 x31 1
+    1fc:        40730333        sub x6 x6 x7
+    200:        03d383b3        mul x7 x7 x29
+    204:        407282b3        sub x5 x5 x7
+
+00000208 <btoa_tens>:
+    208:        03030e13        addi x28 x6 48
+    20c:        01cf8023        sb x28 0 x31
+    210:        001f8f93        addi x31 x31 1
+    214:        026e8333        mul x6 x29 x6
+    218:        406282b3        sub x5 x5 x6
+
+0000021c <btoa_units>:
+    21c:        03028e13        addi x28 x5 48
+    220:        01cf8023        sb x28 0 x31
+    224:        000f80a3        sb x0 1 x31
+    228:        00058513        addi x10 x11 0
+    22c:        00008067        jalr x0 x1 0
+
+00000230 <uitoa>:
+    230:        00a00e93        addi x29 x0 10
+    234:        00100f93        addi x31 x0 1
+    238:        00a00f13        addi x30 x0 10
+    23c:        01e54863        blt x10 x30 16 <uitoa_matched>
+
+00000240 <uitoa_match_pow>:
+    240:        000f0f93        addi x31 x30 0
+    244:        03df0f33        mul x30 x30 x29
+    248:        ffe55ce3        bge x10 x30 -8 <uitoa_match_pow>
+
+0000024c <uitoa_matched>:
+    24c:        03f54333        div x6 x10 x31
+    250:        03030293        addi x5 x6 48
+    254:        00558023        sb x5 0 x11
+    258:        00158593        addi x11 x11 1
+    25c:        03f30333        mul x6 x6 x31
+    260:        40650533        sub x10 x10 x6
+    264:        03dfcfb3        div x31 x31 x29
+    268:        fe0f92e3        bne x31 x0 -28 <uitoa_matched>
+    26c:        00058023        sb x0 0 x11
+    270:        00008067        jalr x0 x1 0
+
+00000274 <strlncpy>:
+    274:        00000293        addi x5 x0 0
+    278:        02c05663        bge x0 x12 44 <strlncpy_return>
+    27c:        fff60f93        addi x31 x12 -1
+    280:        03f2d063        bge x5 x31 32 <strlncpy_null_terminate>
+
+00000284 <strlncpy_loop>:
+    284:        00050303        lb x6 0 x10
+    288:        00150513        addi x10 x10 1
+    28c:        00658023        sb x6 0 x11
+    290:        00158593        addi x11 x11 1
+    294:        00600863        beq x0 x6 16 <strlncpy_return>
+    298:        00128293        addi x5 x5 1
+    29c:        fff2c4e3        blt x5 x31 -24 <strlncpy_loop>
+
+000002a0 <strlncpy_null_terminate>:
+    2a0:        00050023        sb x0 0 x10
+
+000002a4 <strlncpy_return>:
+    2a4:        00028513        addi x10 x5 0
+    2a8:        00008067        jalr x0 x1 0
+
+000002ac <strndup>:
+    2ac:        ffc10113        addi x2 x2 -4
+    2b0:        00112023        sw x1 0 x2
+    2b4:        ff810113        addi x2 x2 -8
+    2b8:        00a12023        sw x10 0 x2
+    2bc:        00158593        addi x11 x11 1
+    2c0:        00b12223        sw x11 4 x2
+    2c4:        00058513        addi x10 x11 0
+    2c8:        00001097        auipc x1 0x1
+    2cc:        e90080e7        jalr x1 x1 -368
+    2d0:        00a00c63        beq x0 x10 24 <strndup_return>
+    2d4:        00050593        addi x11 x10 0
+    2d8:        00012503        lw x10 0 x2
+    2dc:        00412603        lw x12 4 x2
+    2e0:        00000097        auipc x1 0x0 <_start>
+    2e4:        f94080e7        jalr x1 x1 -108
+
+000002e8 <strndup_return>:
+    2e8:        00810113        addi x2 x2 8
+    2ec:        00012083        lw x1 0 x2
+    2f0:        00410113        addi x2 x2 4
+    2f4:        00008067        jalr x0 x1 0
+
+000002f8 <str_map>:
+    2f8:        00500813        addi x16 x0 5
+    2fc:        00008893        addi x17 x1 0
+    300:        00000097        auipc x1 0x0 <_start>
+    304:        e70080e7        jalr x1 x1 -400
+    308:        00050493        addi x9 x10 0
+    30c:        00058913        addi x18 x11 0
+    310:        00060993        addi x19 x12 0
+    314:        00000a13        addi x20 x0 0
+
+00000318 <str_map_loop>:
+    318:        014482b3        add x5 x9 x20
+    31c:        00028303        lb x6 0 x5
+    320:        02600063        beq x0 x6 32 <end_str_map_loop>
+    324:        00030513        addi x10 x6 0
+    328:        000980e7        jalr x1 x19 0
+    32c:        014902b3        add x5 x18 x20
+    330:        00a28023        sb x10 0 x5
+    334:        00a00663        beq x0 x10 12 <end_str_map_loop>
+    338:        001a0a13        addi x20 x20 1
+    33c:        fddff06f        jal x0 -36 <str_map_loop>
+
+00000340 <end_str_map_loop>:
+    340:        014902b3        add x5 x18 x20
+    344:        00028023        sb x0 0 x5
+    348:        00090513        addi x10 x18 0
+    34c:        00000317        auipc x6 0x0 <_start>
+    350:        e3830067        jalr x0 x6 -456
+
+00000354 <str_map_alloc>:
+    354:        ff010113        addi x2 x2 -16
+    358:        00112023        sw x1 0 x2
+    35c:        00a12223        sw x10 4 x2
+    360:        00b12423        sw x11 8 x2
+    364:        00c12623        sw x12 12 x2
+    368:        00158513        addi x10 x11 1
+    36c:        00001097        auipc x1 0x1
+    370:        dec080e7        jalr x1 x1 -532
+    374:        00a00e63        beq x0 x10 28 <return_mapped_string>
+    378:        00050593        addi x11 x10 0
+    37c:        00412503        lw x10 4 x2
+    380:        00c12603        lw x12 12 x2
+    384:        00000097        auipc x1 0x0 <_start>
+    388:        f74080e7        jalr x1 x1 -140
+    38c:        00812583        lw x11 8 x2
+
+00000390 <return_mapped_string>:
+    390:        00012083        lw x1 0 x2
+    394:        01010113        addi x2 x2 16
+    398:        00008067        jalr x0 x1 0
+
+0000039c <bzero>:
+    39c:        02058863        beq x11 x0 48 <bzero_end>
+    3a0:        00400293        addi x5 x0 4
+    3a4:        0055cc63        blt x11 x5 24 <bzero_small>
+
+000003a8 <bzero_loop>:
+    3a8:        00052023        sw x0 0 x10
+    3ac:        ffc58593        addi x11 x11 -4
+    3b0:        00450513        addi x10 x10 4
+    3b4:        fe55dae3        bge x11 x5 -12 <bzero_loop>
+    3b8:        00b00a63        beq x0 x11 20 <bzero_end>
+
+000003bc <bzero_small>:
+    3bc:        00050023        sb x0 0 x10
+    3c0:        00150513        addi x10 x10 1
+    3c4:        fff58593        addi x11 x11 -1
+    3c8:        00059263        bne x11 x0 4 <bzero_end>
+
+000003cc <bzero_end>:
+    3cc:        00008067        jalr x0 x1 0
+
+000003d0 <memcpy>:
+    3d0:        06060463        beq x12 x0 104 <memcpy_end>
+    3d4:        00400293        addi x5 x0 4
+    3d8:        00c02fb3        slt x31 x0 x12
+    3dc:        00a5ae33        slt x28 x11 x10
+    3e0:        00b52eb3        slt x29 x10 x11
+    3e4:        41de0f33        sub x30 x28 x29
+    3e8:        01ff7fb3        and x31 x30 x31
+    3ec:        040f8663        beq x31 x0 76 <memcpy_end>
+    3f0:        00a5c663        blt x11 x10 12 <no_reverse>
+    3f4:        00c585b3        add x11 x11 x12
+    3f8:        00c50533        add x10 x10 x12
+
+000003fc <no_reverse>:
+    3fc:        002f1f93        slli x31 x30 2
+    400:        02564063        blt x12 x5 32 <memcpy_small>
+
+00000404 <memcpy_loop>:
+    404:        00052e03        lw x28 0 x10
+    408:        01f50533        add x10 x10 x31
+    40c:        01c5a023        sw x28 0 x11
+    410:        01f585b3        add x11 x11 x31
+    414:        ffc60613        addi x12 x12 -4
+    418:        fe5656e3        bge x12 x5 -20 <memcpy_loop>
+    41c:        00c00e63        beq x0 x12 28 <memcpy_end>
+
+00000420 <memcpy_small>:
+    420:        00050e03        lb x28 0 x10
+    424:        01e50533        add x10 x10 x30
+    428:        01c58023        sb x28 0 x11
+    42c:        01e585b3        add x11 x11 x30
+    430:        fff60613        addi x12 x12 -1
+    434:        00061263        bne x12 x0 4 <memcpy_end>
+
+00000438 <memcpy_end>:
+    438:        00008067        jalr x0 x1 0
+
+0000043c <caesar_sost>:
+    43c:        05b52293        slti x5 x10 91
+    440:        04000313        addi x6 x0 64
+    444:        00a32333        slt x6 x6 x10
+    448:        0062f2b3        and x5 x5 x6
+    44c:        07b52313        slti x6 x10 123
+    450:        06000393        addi x7 x0 96
+    454:        00a3a3b3        slt x7 x7 x10
+    458:        00737333        and x6 x6 x7
+    45c:        0062e2b3        or x5 x5 x6
+    460:        04500a63        beq x0 x5 84 <caesar_sost_end>
+    464:        02057293        andi x5 x10 32
+    468:        fbf50513        addi x10 x10 -65
+    46c:        40550533        sub x10 x10 x5
+
+00000470 <caesar_sost_load_k>:
+    470:        00000013        addi x0 x0 0
+    474:        00000013        addi x0 x0 0
+    478:        00650533        add x10 x10 x6
+    47c:        10000317        auipc x6 0x10000
+    480:        cdc32303        lw x6 -804 x6
+    484:        00052e33        slt x28 x10 x0
+    488:        02a30333        mul x6 x6 x10
+    48c:        41435313        srai x6 x6 20
+    490:        01a00393        addi x7 x0 26
+    494:        01c30333        add x6 x6 x28
+    498:        02730333        mul x6 x6 x7
+    49c:        40650333        sub x6 x10 x6
+    4a0:        00032e33        slt x28 x6 x0
+    4a4:        03c383b3        mul x7 x7 x28
+    4a8:        00730533        add x10 x6 x7
+    4ac:        04150513        addi x10 x10 65
+    4b0:        00550533        add x10 x10 x5
+
+000004b4 <caesar_sost_end>:
+    4b4:        00008067        jalr x0 x1 0
+
+000004b8 <caesar_decypher>:
+    4b8:        01a00293        addi x5 x0 26
+    4bc:        40c28633        sub x12 x5 x12
+    4c0:        00000317        auipc x6 0x0 <_start>
+    4c4:        00830067        jalr x0 x6 8
+
+000004c8 <caesar_encrypt>:
+    4c8:        00008893        addi x17 x1 0
+    4cc:        00300813        addi x16 x0 3
+    4d0:        00000097        auipc x1 0x0 <_start>
+    4d4:        ca0080e7        jalr x1 x1 -864
+    4d8:        00050493        addi x9 x10 0
+    4dc:        00058913        addi x18 x11 0
+    4e0:        00060513        addi x10 x12 0
+    4e4:        00600593        addi x11 x0 6
+    4e8:        00000617        auipc x12 0x0 <_start>
+    4ec:        f8860613        addi x12 x12 -120
+    4f0:        00000097        auipc x1 0x0 <_start>
+    4f4:        0b0080e7        jalr x1 x1 176
+    4f8:        00048513        addi x10 x9 0
+    4fc:        00090593        addi x11 x18 0
+    500:        00000617        auipc x12 0x0 <_start>
+    504:        f3c60613        addi x12 x12 -196
+    508:        00000097        auipc x1 0x0 <_start>
+    50c:        e4c080e7        jalr x1 x1 -436
+    510:        00000317        auipc x6 0x0 <_start>
+    514:        c7430067        jalr x0 x6 -908
+
+00000518 <char_map>:
+    518:        06000f93        addi x31 x0 96
+    51c:        02000f13        addi x30 x0 32
+    520:        02c00463        beq x0 x12 40 <reverse_map>
+
+00000524 <char_map_encrypt>:
+    524:        00b50533        add x10 x10 x11
+    528:        10000297        auipc x5 0x10000
+    52c:        c342a283        lw x5 -972 x5
+    530:        02a28333        mul x6 x5 x10
+    534:        41635313        srai x6 x6 22
+    538:        03f30333        mul x6 x6 x31
+    53c:        40650533        sub x10 x10 x6
+    540:        01e50533        add x10 x10 x30
+    544:        0180006f        jal x0 24 <char_map_ret>
+
+00000548 <reverse_map>:
+    548:        41e50533        sub x10 x10 x30
+    54c:        40b50533        sub x10 x10 x11
+
+00000550 <reverse_mod>:
+    550:        00af4663        blt x30 x10 12 <char_map_ret>
+    554:        00af8533        add x10 x31 x10
+    558:        ff9ff06f        jal x0 -8 <reverse_mod>
+
+0000055c <char_map_ret>:
+    55c:        00008067        jalr x0 x1 0
+
+00000560 <block_map_load_str>:
+    560:        00000013        addi x0 x0 0
+    564:        00000013        addi x0 x0 0
+
+00000568 <block_map_load_i>:
+    568:        00000013        addi x0 x0 0
+    56c:        00000013        addi x0 x0 0
+
+00000570 <block_map_load_bool>:
+    570:        00000013        addi x0 x0 0
+    574:        00000013        addi x0 x0 0
+    578:        00032e03        lw x28 0 x6
+    57c:        01c283b3        add x7 x5 x28
+    580:        00038583        lb x11 0 x7
+    584:        00b01663        bne x0 x11 12 <continue_block_iter>
+
+00000588 <reset_counter>:
+    588:        00000e13        addi x28 x0 0
+    58c:        00028583        lb x11 0 x5
+
+00000590 <continue_block_iter>:
+    590:        001e0e13        addi x28 x28 1
+    594:        01c32023        sw x28 0 x6
+    598:        00000317        auipc x6 0x0 <_start>
+    59c:        f8030067        jalr x0 x6 -128
+
+000005a0 <curry_word>:
+    5a0:        01451313        slli x6 x10 20
+    5a4:        00032f33        slt x30 x6 x0
+    5a8:        00759f93        slli x31 x11 7
+    5ac:        01336293        ori x5 x6 19
+    5b0:        01f2e2b3        or x5 x5 x31
+    5b4:        00f59393        slli x7 x11 15
+    5b8:        0072e2b3        or x5 x5 x7
+    5bc:        00562223        sw x5 4 x12
+    5c0:        00c55293        srli x5 x10 12
+    5c4:        01e282b3        add x5 x5 x30
+    5c8:        00c29293        slli x5 x5 12
+    5cc:        0372e293        ori x5 x5 55
+    5d0:        01f2e2b3        or x5 x5 x31
+    5d4:        00562023        sw x5 0 x12
+    5d8:        00000513        addi x10 x0 0
+    5dc:        00008067        jalr x0 x1 0
+
+000005e0 <create_block_lambda>:
+    5e0:        00300813        addi x16 x0 3
+    5e4:        00008893        addi x17 x1 0
+    5e8:        00000097        auipc x1 0x0 <_start>
+    5ec:        b88080e7        jalr x1 x1 -1144
+    5f0:        00058493        addi x9 x11 0
+    5f4:        00060913        addi x18 x12 0
+    5f8:        00500593        addi x11 x0 5
+    5fc:        00000617        auipc x12 0x0 <_start>
+    600:        f6460613        addi x12 x12 -156
+    604:        00000097        auipc x1 0x0 <_start>
+    608:        f9c080e7        jalr x1 x1 -100
+    60c:        0004a023        sw x0 0 x9
+    610:        00048513        addi x10 x9 0
+    614:        00600593        addi x11 x0 6
+    618:        00000617        auipc x12 0x0 <_start>
+    61c:        f5060613        addi x12 x12 -176
+    620:        00000097        auipc x1 0x0 <_start>
+    624:        f80080e7        jalr x1 x1 -128
+    628:        00090513        addi x10 x18 0
+    62c:        00c00593        addi x11 x0 12
+    630:        00000617        auipc x12 0x0 <_start>
+    634:        f4060613        addi x12 x12 -192
+    638:        00000097        auipc x1 0x0 <_start>
+    63c:        f68080e7        jalr x1 x1 -152
+    640:        00000317        auipc x6 0x0 <_start>
+    644:        b4430067        jalr x0 x6 -1212
+
+00000648 <block>:
+    648:        00300813        addi x16 x0 3
+    64c:        00008893        addi x17 x1 0
+    650:        00000097        auipc x1 0x0 <_start>
+    654:        b20080e7        jalr x1 x1 -1248
+    658:        ffc10113        addi x2 x2 -4
+    65c:        00050493        addi x9 x10 0
+    660:        00058913        addi x18 x11 0
+    664:        00060513        addi x10 x12 0
+    668:        00010593        addi x11 x2 0
+    66c:        00068613        addi x12 x13 0
+    670:        00000097        auipc x1 0x0 <_start>
+    674:        f70080e7        jalr x1 x1 -144
+    678:        00048513        addi x10 x9 0
+    67c:        00090593        addi x11 x18 0
+    680:        00000617        auipc x12 0x0 <_start>
+    684:        ee060613        addi x12 x12 -288
+    688:        00000097        auipc x1 0x0 <_start>
+    68c:        ccc080e7        jalr x1 x1 -820
+    690:        00410113        addi x2 x2 4
+    694:        00000317        auipc x6 0x0 <_start>
+    698:        af030067        jalr x0 x6 -1296
+
+0000069c <new_arena>:
+    69c:        04a05863        bge x0 x10 80 <failed_arena_init>
+    6a0:        ff810113        addi x2 x2 -8
+    6a4:        00112023        sw x1 0 x2
+    6a8:        00a12223        sw x10 4 x2
+    6ac:        00850513        addi x10 x10 8
+    6b0:        00001097        auipc x1 0x1
+    6b4:        aa8080e7        jalr x1 x1 -1368
+    6b8:        02a00463        beq x0 x10 40 <arena_return>
+    6bc:        00412283        lw x5 4 x2
+    6c0:        00552223        sw x5 4 x10
+    6c4:        00052023        sw x0 0 x10
+    6c8:        00a12223        sw x10 4 x2
+    6cc:        00850513        addi x10 x10 8
+    6d0:        00028593        addi x11 x5 0
+    6d4:        00000097        auipc x1 0x0 <_start>
+    6d8:        cc8080e7        jalr x1 x1 -824
+    6dc:        00412503        lw x10 4 x2
+
+000006e0 <arena_return>:
+    6e0:        00012083        lw x1 0 x2
+    6e4:        00810113        addi x2 x2 8
+    6e8:        00008067        jalr x0 x1 0
+
+000006ec <failed_arena_init>:
+    6ec:        00000513        addi x10 x0 0
+    6f0:        00008067        jalr x0 x1 0
+
+000006f4 <block_encrypt>:
+    6f4:        00100693        addi x13 x0 1
+    6f8:        00000317        auipc x6 0x0 <_start>
+    6fc:        f5030067        jalr x0 x6 -176
+
+00000700 <block_decypher>:
+    700:        00000693        addi x13 x0 0
+    704:        00000317        auipc x6 0x0 <_start>
+    708:        f4430067        jalr x0 x6 -188
+
+0000070c <arena_alloc>:
+    70c:        0015b293        sltiu x5 x11 1
+    710:        00152313        slti x6 x10 1
+    714:        005362b3        or x5 x6 x5
+    718:        00500663        beq x0 x5 12 <arena_alloc_check_pass>
+    71c:        00000513        addi x10 x0 0
+    720:        00008067        jalr x0 x1 0
+
+00000724 <arena_alloc_check_pass>:
+    724:        00300813        addi x16 x0 3
+    728:        00008893        addi x17 x1 0
+    72c:        00000097        auipc x1 0x0 <_start>
+    730:        a44080e7        jalr x1 x1 -1468
+    734:        ffc10113        addi x2 x2 -4
+    738:        00000493        addi x9 x0 0
+    73c:        00058913        addi x18 x11 0
+    740:        00092303        lw x6 0 x18
+    744:        00492383        lw x7 4 x18
+    748:        00a30e33        add x28 x6 x10
+    74c:        01c3c863        blt x7 x28 16 <arena_alloc_return>
+    750:        01c92023        sw x28 0 x18
+    754:        00890493        addi x9 x18 8
+    758:        009304b3        add x9 x6 x9
+
+0000075c <arena_alloc_return>:
+    75c:        00048513        addi x10 x9 0
+    760:        00410113        addi x2 x2 4
+    764:        00000317        auipc x6 0x0 <_start>
+    768:        a2030067        jalr x0 x6 -1504
+
+0000076c <add_occurrence>:
+    76c:        00300813        addi x16 x0 3
+    770:        00008893        addi x17 x1 0
+    774:        00000097        auipc x1 0x0 <_start>
+    778:        9fc080e7        jalr x1 x1 -1540
+    77c:        0005a283        lw x5 0 x11
+    780:        00050493        addi x9 x10 0
+    784:        00500863        beq x0 x5 16 <new_occurrence_node>
+
+00000788 <occ_list_end_search>:
+    788:        00428593        addi x11 x5 4
+    78c:        0005a283        lw x5 0 x11
+    790:        fe501ce3        bne x0 x5 -8 <occ_list_end_search>
+
+00000794 <new_occurrence_node>:
+    794:        00058913        addi x18 x11 0
+    798:        00800513        addi x10 x0 8
+    79c:        00060593        addi x11 x12 0
+    7a0:        00000097        auipc x1 0x0 <_start>
+    7a4:        f6c080e7        jalr x1 x1 -148
+    7a8:        00a00863        beq x0 x10 16 <add_occurrence_return>
+    7ac:        00a92023        sw x10 0 x18
+    7b0:        00952023        sw x9 0 x10
+    7b4:        00100513        addi x10 x0 1
+
+000007b8 <add_occurrence_return>:
+    7b8:        00000317        auipc x6 0x0 <_start>
+    7bc:        9cc30067        jalr x0 x6 -1588
+
+000007c0 <encrypt_char_occurrence>:
+    7c0:        00600813        addi x16 x0 6
+    7c4:        00008893        addi x17 x1 0
+    7c8:        00000097        auipc x1 0x0 <_start>
+    7cc:        9a8080e7        jalr x1 x1 -1624
+    7d0:        ff410113        addi x2 x2 -12
+    7d4:        00058493        addi x9 x11 0
+    7d8:        40810133        sub x2 x2 x8
+    7dc:        00060913        addi x18 x12 0
+    7e0:        00068993        addi x19 x13 0
+    7e4:        02d00293        addi x5 x0 45
+    7e8:        00510023        sb x5 0 x2
+    7ec:        00100a13        addi x20 x0 1
+    7f0:        00a62023        sw x10 0 x12
+
+000007f4 <occurrence_encrypt_loop>:
+    7f4:        0004a503        lw x10 0 x9
+    7f8:        00110593        addi x11 x2 1
+    7fc:        00000097        auipc x1 0x0 <_start>
+    800:        a34080e7        jalr x1 x1 -1484
+    804:        00010513        addi x10 x2 0
+    808:        414982b3        sub x5 x19 x20
+    80c:        00128613        addi x12 x5 1
+    810:        014905b3        add x11 x18 x20
+    814:        00000097        auipc x1 0x0 <_start>
+    818:        a60080e7        jalr x1 x1 -1440
+    81c:        00aa0a33        add x20 x20 x10
+    820:        0044a483        lw x9 4 x9
+    824:        013a2333        slt x6 x20 x19
+    828:        009022b3        slt x5 x0 x9
+    82c:        005372b3        and x5 x6 x5
+    830:        fc5012e3        bne x0 x5 -60 <occurrence_encrypt_loop>
+
+00000834 <occurrence_encrypt_return>:
+    834:        012a02b3        add x5 x20 x18
+    838:        000a0513        addi x10 x20 0
+    83c:        00028023        sb x0 0 x5
+    840:        00c10113        addi x2 x2 12
+    844:        00000317        auipc x6 0x0 <_start>
+    848:        94030067        jalr x0 x6 -1728
+
+0000084c <get_occurrence_map>:
+    84c:        00008893        addi x17 x1 0
+    850:        00500813        addi x16 x0 5
+    854:        00000097        auipc x1 0x0 <_start>
+    858:        91c080e7        jalr x1 x1 -1764
+    85c:        00050493        addi x9 x10 0
+    860:        00058913        addi x18 x11 0
+    864:        00060a13        addi x20 x12 0
+    868:        00050283        lb x5 0 x10
+    86c:        04500463        beq x0 x5 72 <occurrence_map_fail>
+    870:        00090513        addi x10 x18 0
+    874:        18000593        addi x11 x0 384
+    878:        00000097        auipc x1 0x0 <_start>
+    87c:        b24080e7        jalr x1 x1 -1244
+    880:        00000993        addi x19 x0 0
+
+00000884 <get_occurrence_loop>:
+    884:        009982b3        add x5 x19 x9
+    888:        00028283        lb x5 0 x5
+    88c:        02500663        beq x0 x5 44 <occurrence_map_return>
+    890:        fe028313        addi x6 x5 -32
+    894:        00231313        slli x6 x6 2
+    898:        006905b3        add x11 x18 x6
+    89c:        00198513        addi x10 x19 1
+    8a0:        000a0613        addi x12 x20 0
+    8a4:        00000097        auipc x1 0x0 <_start>
+    8a8:        ec8080e7        jalr x1 x1 -312
+    8ac:        00198993        addi x19 x19 1
+    8b0:        fc051ae3        bne x10 x0 -44 <get_occurrence_loop>
+
+000008b4 <occurrence_map_fail>:
+    8b4:        00000913        addi x18 x0 0
+
+000008b8 <occurrence_map_return>:
+    8b8:        00090513        addi x10 x18 0
+
+000008bc <occurrence_map_end>:
+    8bc:        00000317        auipc x6 0x0 <_start>
+    8c0:        8c830067        jalr x0 x6 -1848
+
+000008c4 <occurrence_dest_size>:
+    8c4:        00000293        addi x5 x0 0
+    8c8:        18000f93        addi x31 x0 384
+    8cc:        00000e13        addi x28 x0 0
+
+000008d0 <count_unique_characters>:
+    8d0:        01c503b3        add x7 x10 x28
+    8d4:        0003a383        lw x7 0 x7
+    8d8:        007023b3        slt x7 x0 x7
+    8dc:        007282b3        add x5 x5 x7
+    8e0:        004e0e13        addi x28 x28 4
+    8e4:        fffe46e3        blt x28 x31 -20 <count_unique_characters>
+
+000008e8 <get_total_numstr_len>:
+    8e8:        00000313        addi x6 x0 0
+    8ec:        00a00393        addi x7 x0 10
+    8f0:        00100e13        addi x28 x0 1
+    8f4:        00a00f13        addi x30 x0 10
+    8f8:        00100f93        addi x31 x0 1
+    8fc:        0275c063        blt x11 x7 32 <remaining_numstrings>
+
+00000900 <total_numstring_size_of_len>:
+    900:        41f38eb3        sub x29 x7 x31
+    904:        03de0eb3        mul x29 x28 x29
+    908:        01d30333        add x6 x6 x29
+    90c:        001e0e13        addi x28 x28 1
+    910:        00038f93        addi x31 x7 0
+    914:        03e383b3        mul x7 x7 x30
+    918:        fe75d4e3        bge x11 x7 -24 <total_numstring_size_of_len>
+
+0000091c <remaining_numstrings>:
+    91c:        ffff8f93        addi x31 x31 -1
+    920:        41f58fb3        sub x31 x11 x31
+    924:        03cf8fb3        mul x31 x31 x28
+    928:        01f30333        add x6 x6 x31
+
+0000092c <total_occurrence_dest_size>:
+    92c:        00129293        slli x5 x5 1
+    930:        fff28293        addi x5 x5 -1
+    934:        00b282b3        add x5 x5 x11
+    938:        00530533        add x10 x6 x5
+    93c:        00008067        jalr x0 x1 0
+
+00000940 <occurrence_construct_cypher_text>:
+    940:        00600813        addi x16 x0 6
+    944:        00008893        addi x17 x1 0
+    948:        00000097        auipc x1 0x0 <_start>
+    94c:        828080e7        jalr x1 x1 -2008
+    950:        00050a13        addi x20 x10 0
+    954:        00058913        addi x18 x11 0
+    958:        00158513        addi x10 x11 1
+    95c:        00000097        auipc x1 0x0 <_start>
+    960:        7fc080e7        jalr x1 x1 2044
+    964:        00050493        addi x9 x10 0
+    968:        06a00463        beq x0 x10 104 <occurrence_construct_return>
+    96c:        00000993        addi x19 x0 0
+    970:        00000a93        addi x21 x0 0
+
+00000974 <construct_occurrence_ctext_loop>:
+    974:        014985b3        add x11 x19 x20
+    978:        0005a583        lw x11 0 x11
+    97c:        02b00c63        beq x0 x11 56 <next_character_occurrence>
+    980:        01500c63        beq x0 x21 24 <after_separator>
+    984:        015482b3        add x5 x9 x21
+    988:        001a8a93        addi x21 x21 1
+    98c:        032a8e63        beq x21 x18 60 <occurrence_null_terminate>
+    990:        02000313        addi x6 x0 32
+    994:        00628023        sb x6 0 x5
+
+00000998 <after_separator>:
+    998:        4029d513        srai x10 x19 2
+    99c:        02050513        addi x10 x10 32
+    9a0:        01548633        add x12 x9 x21
+    9a4:        415906b3        sub x13 x18 x21
+    9a8:        00000097        auipc x1 0x0 <_start>
+    9ac:        e18080e7        jalr x1 x1 -488
+    9b0:        00aa8ab3        add x21 x21 x10
+
+000009b4 <next_character_occurrence>:
+    9b4:        00498993        addi x19 x19 4
+    9b8:        012aa333        slt x6 x21 x18
+    9bc:        1809a293        slti x5 x19 384
+    9c0:        0062f2b3        and x5 x5 x6
+    9c4:        fa5018e3        bne x0 x5 -80 <construct_occurrence_ctext_loop>
+
+000009c8 <occurrence_null_terminate>:
+    9c8:        015482b3        add x5 x9 x21
+    9cc:        00028023        sb x0 0 x5
+
+000009d0 <occurrence_construct_return>:
+    9d0:        00048513        addi x10 x9 0
+    9d4:        fffff317        auipc x6 0xfffff
+    9d8:        7b030067        jalr x0 x6 1968
+
+000009dc <occurrence_encrypt>:
+    9dc:        00008893        addi x17 x1 0
+    9e0:        00500813        addi x16 x0 5
+    9e4:        fffff097        auipc x1 0xfffff
+    9e8:        78c080e7        jalr x1 x1 1932
+    9ec:        e8010113        addi x2 x2 -384
+    9f0:        00050493        addi x9 x10 0
+    9f4:        00000993        addi x19 x0 0
+    9f8:        00058913        addi x18 x11 0
+    9fc:        00800293        addi x5 x0 8
+    a00:        02590533        mul x10 x18 x5
+    a04:        00000097        auipc x1 0x0 <_start>
+    a08:        c98080e7        jalr x1 x1 -872
+    a0c:        04a00c63        beq x0 x10 88 <end_occurrence>
+    a10:        00050a13        addi x20 x10 0
+    a14:        00050613        addi x12 x10 0
+    a18:        00048513        addi x10 x9 0
+    a1c:        00010593        addi x11 x2 0
+    a20:        00000097        auipc x1 0x0 <_start>
+    a24:        e2c080e7        jalr x1 x1 -468
+    a28:        02a00263        beq x0 x10 36 <end_occurrence_w_free>
+    a2c:        00090593        addi x11 x18 0
+    a30:        00000097        auipc x1 0x0 <_start>
+    a34:        e94080e7        jalr x1 x1 -364
+    a38:        00050913        addi x18 x10 0
+    a3c:        00010513        addi x10 x2 0
+    a40:        00090593        addi x11 x18 0
+    a44:        00000097        auipc x1 0x0 <_start>
+    a48:        efc080e7        jalr x1 x1 -260
+
+00000a4c <end_occurrence_w_free>:
+    a4c:        00050993        addi x19 x10 0
+    a50:        000a0513        addi x10 x20 0
+    a54:        00001097        auipc x1 0x1
+    a58:        980080e7        jalr x1 x1 -1664
+    a5c:        00098513        addi x10 x19 0
+    a60:        00090593        addi x11 x18 0
+
+00000a64 <end_occurrence>:
+    a64:        18010113        addi x2 x2 384
+    a68:        fffff317        auipc x6 0xfffff
+    a6c:        71c30067        jalr x0 x6 1820
+
+00000a70 <atoui>:
+    a70:        00050283        lb x5 0 x10
+    a74:        02000313        addi x6 x0 32
+    a78:        00629863        bne x5 x6 16 <not_space>
+
+00000a7c <atoui_skip_space>:
+    a7c:        00150513        addi x10 x10 1
+    a80:        00050283        lb x5 0 x10
+    a84:        fe628ce3        beq x5 x6 -8 <atoui_skip_space>
+
+00000a88 <not_space>:
+    a88:        00000f93        addi x31 x0 0
+    a8c:        03900f13        addi x30 x0 57
+    a90:        0302a313        slti x6 x5 48
+    a94:        005f23b3        slt x7 x30 x5
+    a98:        00736333        or x6 x6 x7
+    a9c:        02601663        bne x0 x6 44 <atoui_ret>
+    aa0:        00a00e93        addi x29 x0 10
+
+00000aa4 <atoui_loop>:
+    aa4:        fd028e13        addi x28 x5 -48
+    aa8:        00150513        addi x10 x10 1
+    aac:        03df8fb3        mul x31 x31 x29
+    ab0:        00050283        lb x5 0 x10
+    ab4:        01cf8fb3        add x31 x31 x28
+    ab8:        0302a313        slti x6 x5 48
+    abc:        005f23b3        slt x7 x30 x5
+    ac0:        00736333        or x6 x6 x7
+    ac4:        fe6000e3        beq x0 x6 -32 <atoui_loop>
+
+00000ac8 <atoui_ret>:
+    ac8:        000f8513        addi x10 x31 0
+    acc:        00008067        jalr x0 x1 0
+
+00000ad0 <strchr>:
+    ad0:        00000f93        addi x31 x0 0
+    ad4:        00050283        lb x5 0 x10
+    ad8:        00b28e63        beq x5 x11 28 <strchr_end>
+    adc:        00500c63        beq x0 x5 24 <strchr_end>
+
+00000ae0 <strchr_loop>:
+    ae0:        001f8f93        addi x31 x31 1
+    ae4:        01f502b3        add x5 x10 x31
+    ae8:        00028283        lb x5 0 x5
+    aec:        00b28463        beq x5 x11 8 <strchr_end>
+    af0:        fe0298e3        bne x5 x0 -16 <strchr_loop>
+
+00000af4 <strchr_end>:
+    af4:        000f8513        addi x10 x31 0
+    af8:        00008067        jalr x0 x1 0
+
+00000afc <occurrence_plaintext_size>:
+    afc:        00500813        addi x16 x0 5
+    b00:        00008893        addi x17 x1 0
+    b04:        fffff097        auipc x1 0xfffff
+    b08:        66c080e7        jalr x1 x1 1644
+    b0c:        00050493        addi x9 x10 0
+    b10:        00000913        addi x18 x0 0
+    b14:        00000993        addi x19 x0 0
+    b18:        02d00a13        addi x20 x0 45
+    b1c:        00048283        lb x5 0 x9
+    b20:        04500063        beq x0 x5 64 <plaintext_size_ret>
+    b24:        005a0c63        beq x20 x5 24 <found_dash>
+
+00000b28 <occurrence_ct_iter>:
+    b28:        00198993        addi x19 x19 1
+    b2c:        013482b3        add x5 x9 x19
+    b30:        00028283        lb x5 0 x5
+    b34:        02500663        beq x0 x5 44 <plaintext_size_ret>
+    b38:        fe5a18e3        bne x20 x5 -16 <occurrence_ct_iter>
+
+00000b3c <found_dash>:
+    b3c:        00198993        addi x19 x19 1
+    b40:        00048283        lb x5 0 x9
+    b44:        ff428ce3        beq x5 x20 -8 <found_dash>
+
+00000b48 <after_dash>:
+    b48:        01348533        add x10 x9 x19
+    b4c:        00000097        auipc x1 0x0 <_start>
+    b50:        f24080e7        jalr x1 x1 -220
+    b54:        fca95ae3        bge x18 x10 -44 <occurrence_ct_iter>
+
+00000b58 <store_max>:
+    b58:        00050913        addi x18 x10 0
+    b5c:        fcdff06f        jal x0 -52 <occurrence_ct_iter>
+
+00000b60 <plaintext_size_ret>:
+    b60:        00090513        addi x10 x18 0
+    b64:        fffff317        auipc x6 0xfffff
+    b68:        62030067        jalr x0 x6 1568
+
+00000b6c <restore_char_by_occurrence>:
+    b6c:        00600813        addi x16 x0 6
+    b70:        00008893        addi x17 x1 0
+    b74:        fffff097        auipc x1 0xfffff
+    b78:        5fc080e7        jalr x1 x1 1532
+    b7c:        00050493        addi x9 x10 0
+    b80:        00058913        addi x18 x11 0
+    b84:        00200993        addi x19 x0 2
+    b88:        00048a03        lb x20 0 x9
+    b8c:        00060a93        addi x21 x12 0
+
+00000b90 <char_occurrence_loop>:
+    b90:        01348533        add x10 x9 x19
+    b94:        00000097        auipc x1 0x0 <_start>
+    b98:        edc080e7        jalr x1 x1 -292
+    b9c:        fff50513        addi x10 x10 -1
+    ba0:        012502b3        add x5 x10 x18
+    ba4:        01428023        sb x20 0 x5
+    ba8:        01348533        add x10 x9 x19
+    bac:        02d00593        addi x11 x0 45
+    bb0:        00000097        auipc x1 0x0 <_start>
+    bb4:        f20080e7        jalr x1 x1 -224
+    bb8:        00a989b3        add x19 x19 x10
+    bbc:        00198993        addi x19 x19 1
+    bc0:        fd59c8e3        blt x19 x21 -48 <char_occurrence_loop>
+
+00000bc4 <restore_char_by_occurrence_end>:
+    bc4:        fffff317        auipc x6 0xfffff
+    bc8:        5c030067        jalr x0 x6 1472
+
+00000bcc <occurrence_construct_plain_text>:
+    bcc:        00700813        addi x16 x0 7
+    bd0:        00008893        addi x17 x1 0
+    bd4:        fffff097        auipc x1 0xfffff
+    bd8:        59c080e7        jalr x1 x1 1436
+    bdc:        00050493        addi x9 x10 0
+    be0:        00000913        addi x18 x0 0
+    be4:        00058a13        addi x20 x11 0
+    be8:        fff00a93        addi x21 x0 -1
+    bec:        02000b13        addi x22 x0 32
+
+00000bf0 <occurrence_cpt_iter>:
+    bf0:        001a8993        addi x19 x21 1
+    bf4:        01348533        add x10 x9 x19
+    bf8:        000b0593        addi x11 x22 0
+
+00000bfc <ocpt_search_next_group>:
+    bfc:        00000097        auipc x1 0x0 <_start>
+    c00:        ed4080e7        jalr x1 x1 -300
+    c04:        00a98ab3        add x21 x19 x10
+    c08:        002aa293        slti x5 x21 2
+    c0c:        fe5018e3        bne x0 x5 -16 <ocpt_search_next_group>
+    c10:        01348533        add x10 x9 x19
+    c14:        000a0593        addi x11 x20 0
+    c18:        413a8633        sub x12 x21 x19
+    c1c:        00000097        auipc x1 0x0 <_start>
+    c20:        f50080e7        jalr x1 x1 -176
+    c24:        015482b3        add x5 x9 x21
+    c28:        00028283        lb x5 0 x5
+    c2c:        fc5012e3        bne x0 x5 -60 <occurrence_cpt_iter>
+
+00000c30 <construct_plaintext_ret>:
+    c30:        000a0513        addi x10 x20 0
+    c34:        fffff317        auipc x6 0xfffff
+    c38:        55030067        jalr x0 x6 1360
+
+00000c3c <occurrence_decypher>:
+    c3c:        00300813        addi x16 x0 3
+    c40:        00008893        addi x17 x1 0
+    c44:        fffff097        auipc x1 0xfffff
+    c48:        52c080e7        jalr x1 x1 1324
+    c4c:        00050493        addi x9 x10 0
+    c50:        00000097        auipc x1 0x0 <_start>
+    c54:        eac080e7        jalr x1 x1 -340
+    c58:        00050913        addi x18 x10 0
+    c5c:        00150513        addi x10 x10 1
+    c60:        00000097        auipc x1 0x0 <_start>
+    c64:        4f8080e7        jalr x1 x1 1272
+    c68:        00a00e63        beq x0 x10 28 <occurrence_decypher_ret>
+    c6c:        00050593        addi x11 x10 0
+    c70:        00048513        addi x10 x9 0
+    c74:        00000097        auipc x1 0x0 <_start>
+    c78:        f58080e7        jalr x1 x1 -168
+    c7c:        00a902b3        add x5 x18 x10
+    c80:        00028023        sb x0 0 x5
+
+00000c84 <occurrence_decypher_ret>:
+    c84:        00090593        addi x11 x18 0
+    c88:        fffff317        auipc x6 0xfffff
+    c8c:        4fc30067        jalr x0 x6 1276
+
+00000c90 <dictionary_function>:
+    c90:        04100293        addi x5 x0 65
+    c94:        05a00313        addi x6 x0 90
+    c98:        00554863        blt x10 x5 16 <not_upper>
+    c9c:        00a34663        blt x6 x10 12 <not_upper>
+    ca0:        07a00313        addi x6 x0 122
+    ca4:        0380006f        jal x0 56 <end_dict_if>
+
+00000ca8 <not_upper>:
+    ca8:        06100293        addi x5 x0 97
+    cac:        07a00313        addi x6 x0 122
+    cb0:        00554863        blt x10 x5 16 <not_letter>
+    cb4:        00a34663        blt x6 x10 12 <not_letter>
+    cb8:        05a00313        addi x6 x0 90
+    cbc:        0200006f        jal x0 32 <end_dict_if>
+
+00000cc0 <not_letter>:
+    cc0:        03000293        addi x5 x0 48
+    cc4:        03900313        addi x6 x0 57
+    cc8:        00554863        blt x10 x5 16 <not_alphanumeric>
+    ccc:        00a34663        blt x6 x10 12 <not_alphanumeric>
+    cd0:        00000013        addi x0 x0 0
+    cd4:        0080006f        jal x0 8 <end_dict_if>
+
+00000cd8 <not_alphanumeric>:
+    cd8:        00008067        jalr x0 x1 0
+
+00000cdc <end_dict_if>:
+    cdc:        40550533        sub x10 x10 x5
+    ce0:        40a30533        sub x10 x6 x10
+    ce4:        00008067        jalr x0 x1 0
+
+00000ce8 <dictionary>:
+    ce8:        fffff317        auipc x6 0xfffff
+    cec:        66c30067        jalr x0 x6 1644
+
+00000cf0 <inversion>:
+    cf0:        00500813        addi x16 x0 5
+    cf4:        00008893        addi x17 x1 0
+    cf8:        fffff097        auipc x1 0xfffff
+    cfc:        478080e7        jalr x1 x1 1144
+    d00:        00050493        addi x9 x10 0
+    d04:        00000a13        addi x20 x0 0
+    d08:        00058913        addi x18 x11 0
+    d0c:        00158513        addi x10 x11 1
+    d10:        00000097        auipc x1 0x0 <_start>
+    d14:        448080e7        jalr x1 x1 1096
+    d18:        02a00a63        beq x0 x10 52 <end_inversion>
+    d1c:        00050a13        addi x20 x10 0
+    d20:        00000993        addi x19 x0 0
+    d24:        03298063        beq x19 x18 32 <end_inv_loop>
+
+00000d28 <inv_loop>:
+    d28:        013482b3        add x5 x9 x19
+    d2c:        00028283        lb x5 0 x5
+    d30:        41390333        sub x6 x18 x19
+    d34:        006a0333        add x6 x20 x6
+    d38:        fe530fa3        sb x5 -1 x6
+    d3c:        00198993        addi x19 x19 1
+    d40:        ff2994e3        bne x19 x18 -24 <inv_loop>
+
+00000d44 <end_inv_loop>:
+    d44:        012a02b3        add x5 x20 x18
+    d48:        00028023        sb x0 0 x5
+
+00000d4c <end_inversion>:
+    d4c:        000a0513        addi x10 x20 0
+    d50:        00090593        addi x11 x18 0
+    d54:        012502b3        add x5 x10 x18
+    d58:        00028023        sb x0 0 x5
+    d5c:        fffff317        auipc x6 0xfffff
+    d60:        42830067        jalr x0 x6 1064
+
+00000d64 <char_sanitizer>:
+    d64:        00000293        addi x5 x0 0
+    d68:        0ffff317        auipc x6 0xffff
+    d6c:        38630313        addi x6 x6 902
+
+00000d70 <sanitizer_loop>:
+    d70:        005303b3        add x7 x6 x5
+    d74:        00038383        lb x7 0 x7
+    d78:        00700a63        beq x0 x7 20 <end_sanitizer_loop>
+    d7c:        00a39463        bne x7 x10 8 <mismatched_char>
+    d80:        00008067        jalr x0 x1 0
+
+00000d84 <mismatched_char>:
+    d84:        00128293        addi x5 x5 1
+    d88:        fe9ff06f        jal x0 -24 <sanitizer_loop>
+
+00000d8c <end_sanitizer_loop>:
+    d8c:        00000513        addi x10 x0 0
+    d90:        00008067        jalr x0 x1 0
+
+00000d94 <sanitize_cypher>:
+    d94:        00050593        addi x11 x10 0
+    d98:        00000617        auipc x12 0x0 <_start>
+    d9c:        fcc60613        addi x12 x12 -52
+    da0:        fffff317        auipc x6 0xfffff
+    da4:        55830067        jalr x0 x6 1368
+
+00000da8 <encrpt_init>:
+    da8:        0ffffb17        auipc x22 0xffff
+    dac:        3b8b0b13        addi x22 x22 952
+    db0:        00000993        addi x19 x0 0
+    db4:        00100a13        addi x20 x0 1
+    db8:        00050a93        addi x21 x10 0
+    dbc:        0600006f        jal x0 96 <cypher_loop>
+
+00000dc0 <decypher_init>:
+    dc0:        fff50993        addi x19 x10 -1
+    dc4:        0ffffb17        auipc x22 0xffff
+    dc8:        3b0b0b13        addi x22 x22 944
+    dcc:        fff00a13        addi x20 x0 -1
+    dd0:        fff00a93        addi x21 x0 -1
+    dd4:        0480006f        jal x0 72 <cypher_loop>
+
+00000dd8 <cypher_iter>:
+    dd8:        00008893        addi x17 x1 0
+    ddc:        00900813        addi x16 x0 9
+    de0:        fffff097        auipc x1 0xfffff
+    de4:        390080e7        jalr x1 x1 912
+    de8:        ffc10113        addi x2 x2 -4
+    dec:        00050493        addi x9 x10 0
+    df0:        00058913        addi x18 x11 0
+    df4:        00100b93        addi x23 x0 1
+    df8:        fffff097        auipc x1 0xfffff
+    dfc:        358080e7        jalr x1 x1 856
+    e00:        00050c13        addi x24 x10 0
+    e04:        00092503        lw x10 0 x18
+    e08:        fffff097        auipc x1 0xfffff
+    e0c:        348080e7        jalr x1 x1 840
+    e10:        0e050463        beq x10 x0 232 <end_cypher_loop>
+    e14:        f8061ae3        bne x12 x0 -108 <encrpt_init>
+    e18:        fa9ff06f        jal x0 -88 <decypher_init>
+
+00000e1c <cypher_loop>:
+    e1c:        00092303        lw x6 0 x18
+    e20:        013302b3        add x5 x6 x19
+    e24:        00048513        addi x10 x9 0
+    e28:        000c0593        addi x11 x24 0
+    e2c:        00028283        lb x5 0 x5
+
+00000e30 <cypher_switch>:
+    e30:        fbf28293        addi x5 x5 -65
+    e34:        00229293        slli x5 x5 2
+    e38:        005b02b3        add x5 x22 x5
+    e3c:        0002a283        lw x5 0 x5
+    e40:        00028067        jalr x0 x5 0
+
+00000e44 <encrypt_case_A>:
+    e44:        00492603        lw x12 4 x18
+    e48:        fffff097        auipc x1 0xfffff
+    e4c:        680080e7        jalr x1 x1 1664
+    e50:        0640006f        jal x0 100 <end_cypher_switch>
+
+00000e54 <decypher_case_A>:
+    e54:        00492603        lw x12 4 x18
+    e58:        fffff097        auipc x1 0xfffff
+    e5c:        660080e7        jalr x1 x1 1632
+    e60:        0540006f        jal x0 84 <end_cypher_switch>
+
+00000e64 <encrypt_case_B>:
+    e64:        00892603        lw x12 8 x18
+    e68:        00000097        auipc x1 0x0 <_start>
+    e6c:        88c080e7        jalr x1 x1 -1908
+    e70:        0440006f        jal x0 68 <end_cypher_switch>
+
+00000e74 <decypher_case_B>:
+    e74:        00892603        lw x12 8 x18
+    e78:        00000097        auipc x1 0x0 <_start>
+    e7c:        888080e7        jalr x1 x1 -1912
+    e80:        0340006f        jal x0 52 <end_cypher_switch>
+
+00000e84 <encrypt_case_C>:
+    e84:        00000097        auipc x1 0x0 <_start>
+    e88:        b58080e7        jalr x1 x1 -1192
+    e8c:        0280006f        jal x0 40 <end_cypher_switch>
+
+00000e90 <decypher_case_C>:
+    e90:        00000097        auipc x1 0x0 <_start>
+    e94:        dac080e7        jalr x1 x1 -596
+    e98:        01c0006f        jal x0 28 <end_cypher_switch>
+
+00000e9c <encrypt_case_D>:
+    e9c:        00c92603        lw x12 12 x18
+    ea0:        00000097        auipc x1 0x0 <_start>
+    ea4:        e48080e7        jalr x1 x1 -440
+    ea8:        00c0006f        jal x0 12 <end_cypher_switch>
+
+00000eac <encrypt_case_E>:
+    eac:        00000097        auipc x1 0x0 <_start>
+    eb0:        e44080e7        jalr x1 x1 -444
+
+00000eb4 <end_cypher_switch>:
+    eb4:        00048293        addi x5 x9 0
+    eb8:        00050493        addi x9 x10 0
+    ebc:        00058c13        addi x24 x11 0
+    ec0:        000b9a63        bne x23 x0 20 <no_free_src>
+
+00000ec4 <free_src>:
+    ec4:        00028513        addi x10 x5 0
+    ec8:        00000097        auipc x1 0x0 <_start>
+    ecc:        50c080e7        jalr x1 x1 1292
+    ed0:        00048513        addi x10 x9 0
+
+00000ed4 <no_free_src>:
+    ed4:        00000b93        addi x23 x0 0
+
+00000ed8 <print_result_text>:
+    ed8:        00400893        addi x17 x0 4
+    edc:        00000073        ecall
+    ee0:        00a00513        addi x10 x0 10
+    ee4:        00b00893        addi x17 x0 11
+    ee8:        00000073        ecall
+    eec:        014989b3        add x19 x19 x20
+    ef0:        f35996e3        bne x19 x21 -212 <cypher_loop>
+    ef4:        00048513        addi x10 x9 0
+
+00000ef8 <end_cypher_loop>:
+    ef8:        00410113        addi x2 x2 4
+    efc:        fffff317        auipc x6 0xfffff
+    f00:        28830067        jalr x0 x6 648
+
+00000f04 <strncpy>:
+    f04:        00000293        addi x5 x0 0
+    f08:        02064463        blt x12 x0 40 <strncpy_end>
+    f0c:        00c00e63        beq x0 x12 28 <strncpy_terminate>
+
+00000f10 <strncpy_loop>:
+    f10:        00a28333        add x6 x5 x10
+    f14:        00030383        lb x7 0 x6
+    f18:        00b28e33        add x28 x5 x11
+    f1c:        007e0023        sb x7 0 x28
+    f20:        00128293        addi x5 x5 1
+    f24:        fec2c6e3        blt x5 x12 -20 <strncpy_loop>
+
+00000f28 <strncpy_terminate>:
+    f28:        00558e33        add x28 x11 x5
+    f2c:        000e0023        sb x0 0 x28
+
+00000f30 <strncpy_end>:
+    f30:        00058513        addi x10 x11 0
+    f34:        00008067        jalr x0 x1 0
+
+00000f38 <best_fit_chunk_search>:
+    f38:        ff810113        addi x2 x2 -8
+    f3c:        00112223        sw x1 4 x2
+    f40:        fe810113        addi x2 x2 -24
+    f44:        00812023        sw x8 0 x2
+    f48:        00912223        sw x9 4 x2
+    f4c:        01212423        sw x18 8 x2
+    f50:        01312623        sw x19 12 x2
+    f54:        01412823        sw x20 16 x2
+    f58:        01512a23        sw x21 20 x2
+    f5c:        01c00413        addi x8 x0 28
+    f60:        10fff497        auipc x9 0x10fff
+    f64:        0a048493        addi x9 x9 160
+    f68:        00048913        addi x18 x9 0
+    f6c:        00000993        addi x19 x0 0
+    f70:        0ffffa17        auipc x20 0xffff
+    f74:        21ca2a03        lw x20 540 x20
+    f78:        ff4a0a13        addi x20 x20 -12
+    f7c:        009a0a33        add x20 x20 x9
+    f80:        00000a93        addi x21 x0 0
+    f84:        05495063        bge x18 x20 64 <end_chunk_search>
+
+00000f88 <chunk_search>:
+    f88:        00492283        lw x5 4 x18
+    f8c:        00892303        lw x6 8 x18
+    f90:        00503fb3        sltu x31 x0 x5
+    f94:        00a32f33        slt x30 x6 x10
+    f98:        01efefb3        or x31 x31 x30
+    f9c:        000f9a63        bne x31 x0 20 <next_chunk>
+    fa0:        00098663        beq x19 x0 12 <select_chunk>
+    fa4:        0089af83        lw x31 8 x19
+    fa8:        01ff5463        bge x30 x31 8 <next_chunk>
+
+00000fac <select_chunk>:
+    fac:        00090993        addi x19 x18 0
+
+00000fb0 <next_chunk>:
+    fb0:        00090a93        addi x21 x18 0
+    fb4:        00892f83        lw x31 8 x18
+    fb8:        01f90933        add x18 x18 x31
+    fbc:        00c90913        addi x18 x18 12
+    fc0:        fd4944e3        blt x18 x20 -56 <chunk_search>
+
+00000fc4 <end_chunk_search>:
+    fc4:        00098513        addi x10 x19 0
+    fc8:        000a8593        addi x11 x21 0
+    fcc:        00012403        lw x8 0 x2
+    fd0:        00412483        lw x9 4 x2
+    fd4:        00812903        lw x18 8 x2
+    fd8:        00c12983        lw x19 12 x2
+    fdc:        01012a03        lw x20 16 x2
+    fe0:        01412a83        lw x21 20 x2
+    fe4:        01810113        addi x2 x2 24
+    fe8:        00412083        lw x1 4 x2
+    fec:        00810113        addi x2 x2 8
+    ff0:        00008067        jalr x0 x1 0
+
+00000ff4 <fit_request_chunk_size>:
+    ff4:        0ffff317        auipc x6 0xffff
+    ff8:        1a430313        addi x6 x6 420
+    ffc:        00032283        lw x5 0 x6
+    1000:        00554863        blt x10 x5 16 <chunk_size_fits_request_size>
+
+00001004 <increase_request_chunk_size>:
+    1004:        00129293        slli x5 x5 1
+    1008:        00532023        sw x5 0 x6
+    100c:        00554263        blt x10 x5 4 <chunk_size_fits_request_size>
+
+00001010 <chunk_size_fits_request_size>:
+    1010:        00008067        jalr x0 x1 0
+
+00001014 <new_chunk>:
+    1014:        ff410113        addi x2 x2 -12
+    1018:        00112023        sw x1 0 x2
+    101c:        ffc67613        andi x12 x12 -4
+    1020:        0035f293        andi x5 x11 3
+    1024:        02500463        beq x0 x5 40 <four_aligned_chunk_size>
+
+00001028 <_align_requested_size>:
+    1028:        ffc10113        addi x2 x2 -4
+    102c:        00a12023        sw x10 0 x2
+    1030:        00058513        addi x10 x11 0
+    1034:        00000097        auipc x1 0x0 <_start>
+    1038:        110080e7        jalr x1 x1 272
+    103c:        00050593        addi x11 x10 0
+    1040:        00012503        lw x10 0 x2
+    1044:        00410113        addi x2 x2 4
+    1048:        00812603        lw x12 8 x2
+
+0000104c <four_aligned_chunk_size>:
+    104c:        ff460613        addi x12 x12 -12
+    1050:        00059863        bne x11 x0 16 <set_chunk_size>
+
+00001054 <use_all_available>:
+    1054:        00060593        addi x11 x12 0
+    1058:        00162293        slti x5 x12 1
+    105c:        005585b3        add x11 x11 x5
+
+00001060 <set_chunk_size>:
+    1060:        00b65663        bge x12 x11 12 <calc_new_address>
+
+00001064 <new_chunk_fail>:
+    1064:        00000513        addi x10 x0 0
+    1068:        0880006f        jal x0 136 <new_chunk_end>
+
+0000106c <calc_new_address>:
+    106c:        00a00c63        beq x0 x10 24 <no_prev>
+    1070:        00852303        lw x6 8 x10
+    1074:        00050293        addi x5 x10 0
+    1078:        00650533        add x10 x10 x6
+    107c:        00c50513        addi x10 x10 12
+    1080:        0100006f        jal x0 16 <set_new_chunks_prev>
+
+00001084 <no_prev>:
+    1084:        10fff517        auipc x10 0x10fff
+    1088:        f7c50513        addi x10 x10 -132
+    108c:        00000293        addi x5 x0 0
+
+00001090 <set_new_chunks_prev>:
+    1090:        00a12223        sw x10 4 x2
+    1094:        00552023        sw x5 0 x10
+
+00001098 <set_new_chunks_size>:
+    1098:        00c52423        sw x12 8 x10
+    109c:        00052223        sw x0 4 x10
+    10a0:        40b60633        sub x12 x12 x11
+    10a4:        00400293        addi x5 x0 4
+    10a8:        00c28293        addi x5 x5 12
+    10ac:        00564c63        blt x12 x5 24 <check_chunk_after_new>
+
+000010b0 <new_chunk_with_leftover_memory>:
+    10b0:        00b52423        sw x11 8 x10
+    10b4:        00000593        addi x11 x0 0
+    10b8:        00000097        auipc x1 0x0 <_start>
+    10bc:        f5c080e7        jalr x1 x1 -164
+    10c0:        02c0006f        jal x0 44 <new_chunk_return>
+
+000010c4 <check_chunk_after_new>:
+    10c4:        00852283        lw x5 8 x10
+    10c8:        00a282b3        add x5 x5 x10
+    10cc:        00c28293        addi x5 x5 12
+    10d0:        10fff317        auipc x6 0x10fff
+    10d4:        f3030313        addi x6 x6 -208
+    10d8:        0ffff397        auipc x7 0xffff
+    10dc:        0b43a383        lw x7 180 x7
+    10e0:        00638333        add x6 x7 x6
+    10e4:        00534463        blt x6 x5 8 <new_chunk_return>
+    10e8:        00a2a023        sw x10 0 x5
+
+000010ec <new_chunk_return>:
+    10ec:        00412503        lw x10 4 x2
+
+000010f0 <new_chunk_end>:
+    10f0:        00012083        lw x1 0 x2
+    10f4:        00c10113        addi x2 x2 12
+    10f8:        00008067        jalr x0 x1 0
+
+000010fc <split_chunk>:
+    10fc:        00452283        lw x5 4 x10
+    1100:        00500663        beq x0 x5 12 <split_free_chunk>
+
+00001104 <failed_split>:
+    1104:        00000513        addi x10 x0 0
+    1108:        0380006f        jal x0 56 <split_chunk_end>
+
+0000110c <split_free_chunk>:
+    110c:        ff810113        addi x2 x2 -8
+    1110:        00112023        sw x1 0 x2
+    1114:        00a12223        sw x10 4 x2
+    1118:        00852383        lw x7 8 x10
+    111c:        40b38e33        sub x28 x7 x11
+    1120:        00852603        lw x12 8 x10
+    1124:        00052503        lw x10 0 x10
+    1128:        00c60613        addi x12 x12 12
+
+0000112c <resize_left>:
+    112c:        00000097        auipc x1 0x0 <_start>
+    1130:        ee8080e7        jalr x1 x1 -280
+    1134:        00412503        lw x10 4 x2
+    1138:        00012083        lw x1 0 x2
+    113c:        00810113        addi x2 x2 8
+
+00001140 <split_chunk_end>:
+    1140:        00008067        jalr x0 x1 0
+
+00001144 <four_align_size>:
+    1144:        ffc57293        andi x5 x10 -4
+    1148:        00a2a333        slt x6 x5 x10
+    114c:        00231313        slli x6 x6 2
+    1150:        00628533        add x10 x5 x6
+    1154:        00008067        jalr x0 x1 0
+
+00001158 <malloc>:
+    1158:        08a05263        bge x0 x10 132 <failed_malloc>
+    115c:        0ffff297        auipc x5 0xffff
+    1160:        02c2a283        lw x5 44 x5
+    1164:        40510133        sub x2 x2 x5
+    1168:        00112023        sw x1 0 x2
+    116c:        06a05863        bge x0 x10 112 <failed_malloc>
+    1170:        0ffff297        auipc x5 0xffff
+    1174:        0202a283        lw x5 32 x5
+    1178:        06a2c263        blt x5 x10 100 <failed_malloc>
+    117c:        00000097        auipc x1 0x0 <_start>
+    1180:        fc8080e7        jalr x1 x1 -56
+    1184:        00a12223        sw x10 4 x2
+    1188:        00000097        auipc x1 0x0 <_start>
+    118c:        e6c080e7        jalr x1 x1 -404
+    1190:        00000097        auipc x1 0x0 <_start>
+    1194:        064080e7        jalr x1 x1 100
+    1198:        00412503        lw x10 4 x2
+    119c:        00000097        auipc x1 0x0 <_start>
+    11a0:        d9c080e7        jalr x1 x1 -612
+    11a4:        00a01a63        bne x0 x10 20 <allocate_chunk>
+    11a8:        00058513        addi x10 x11 0
+    11ac:        00000097        auipc x1 0x0 <_start>
+    11b0:        164080e7        jalr x1 x1 356
+    11b4:        02050463        beq x10 x0 40 <failed_malloc>
+
+000011b8 <allocate_chunk>:
+    11b8:        00a12623        sw x10 12 x2
+    11bc:        00412583        lw x11 4 x2
+    11c0:        00000097        auipc x1 0x0 <_start>
+    11c4:        f3c080e7        jalr x1 x1 -196
+
+000011c8 <return_chunk>:
+    11c8:        00c12503        lw x10 12 x2
+    11cc:        00100293        addi x5 x0 1
+    11d0:        00552223        sw x5 4 x10
+    11d4:        00c50513        addi x10 x10 12
+    11d8:        0080006f        jal x0 8 <malloc_return>
+
+000011dc <failed_malloc>:
+    11dc:        00000513        addi x10 x0 0
+
+000011e0 <malloc_return>:
+    11e0:        00012083        lw x1 0 x2
+    11e4:        0ffff297        auipc x5 0xffff
+    11e8:        fa42a283        lw x5 -92 x5
+    11ec:        00510133        add x2 x2 x5
+    11f0:        00008067        jalr x0 x1 0
+
+000011f4 <heap_initialize>:
+    11f4:        0ffff297        auipc x5 0xffff
+    11f8:        fa02a283        lw x5 -96 x5
+    11fc:        04029a63        bne x5 x0 84 <heap_is_initialized>
+    1200:        ffc10113        addi x2 x2 -4
+    1204:        00112023        sw x1 0 x2
+    1208:        0ffff297        auipc x5 0xffff
+    120c:        f8c28293        addi x5 x5 -116
+    1210:        00100313        addi x6 x0 1
+    1214:        0062a023        sw x6 0 x5
+    1218:        0ffff517        auipc x10 0xffff
+    121c:        f7452503        lw x10 -140 x10
+    1220:        00000097        auipc x1 0x0 <_start>
+    1224:        f24080e7        jalr x1 x1 -220
+    1228:        0ffff297        auipc x5 0xffff
+    122c:        f6428293        addi x5 x5 -156
+    1230:        00a2a023        sw x10 0 x5
+    1234:        00050613        addi x12 x10 0
+    1238:        00000513        addi x10 x0 0
+    123c:        00000593        addi x11 x0 0
+    1240:        00000097        auipc x1 0x0 <_start>
+    1244:        dd4080e7        jalr x1 x1 -556
+    1248:        00012083        lw x1 0 x2
+    124c:        00410113        addi x2 x2 4
+
+00001250 <heap_is_initialized>:
+    1250:        00008067        jalr x0 x1 0
+
+00001254 <merge_chunks>:
+    1254:        00b54863        blt x10 x11 16 <not_swap_mc>
+    1258:        00b545b3        xor x11 x10 x11
+    125c:        00b54533        xor x10 x10 x11
+    1260:        00b545b3        xor x11 x10 x11
+
+00001264 <not_swap_mc>:
+    1264:        0fffff97        auipc x31 0xffff
+    1268:        f28faf83        lw x31 -216 x31
+    126c:        10ffff17        auipc x30 0x10fff
+    1270:        d94f0f13        addi x30 x30 -620
+    1274:        01ef8fb3        add x31 x31 x30
+    1278:        ffff0f13        addi x30 x30 -1
+    127c:        00af22b3        slt x5 x30 x10
+    1280:        01f5a333        slt x6 x11 x31
+    1284:        0062f2b3        and x5 x5 x6
+    1288:        02028063        beq x5 x0 32 <failed_merge>
+    128c:        00452283        lw x5 4 x10
+    1290:        0045a303        lw x6 4 x11
+    1294:        0005a383        lw x7 0 x11
+    1298:        007523b3        slt x7 x10 x7
+    129c:        0062eeb3        or x29 x5 x6
+    12a0:        01d3eeb3        or x29 x7 x29
+    12a4:        01d00663        beq x0 x29 12 <proceed_to_merge>
+
+000012a8 <failed_merge>:
+    12a8:        00000513        addi x10 x0 0
+    12ac:        00008067        jalr x0 x1 0
+
+000012b0 <proceed_to_merge>:
+    12b0:        0085a303        lw x6 8 x11
+    12b4:        0005a023        sw x0 0 x11
+    12b8:        0005a223        sw x0 4 x11
+    12bc:        0005a423        sw x0 8 x11
+    12c0:        00b30f33        add x30 x6 x11
+    12c4:        00cf0f13        addi x30 x30 12
+    12c8:        01ff5463        bge x30 x31 8 <no_next_to_link>
+
+000012cc <link_next_chunk>:
+    12cc:        00af2023        sw x10 0 x30
+
+000012d0 <no_next_to_link>:
+    12d0:        00852383        lw x7 8 x10
+    12d4:        00c30293        addi x5 x6 12
+    12d8:        007282b3        add x5 x5 x7
+    12dc:        00552423        sw x5 8 x10
+
+000012e0 <merge_return>:
+    12e0:        00008067        jalr x0 x1 0
+
+000012e4 <make_newly_requested_memory_chunk>:
+    12e4:        00852303        lw x6 8 x10
+    12e8:        00c30e13        addi x28 x6 12
+    12ec:        005e0333        add x6 x28 x5
+    12f0:        00532023        sw x5 0 x6
+    12f4:        00032223        sw x0 4 x6
+    12f8:        10fffe97        auipc x29 0x10fff
+    12fc:        d08e8e93        addi x29 x29 -760
+    1300:        41d30f33        sub x30 x6 x29
+    1304:        00cf0f13        addi x30 x30 12
+    1308:        01e32423        sw x30 8 x6
+    130c:        00008067        jalr x0 x1 0
+
+00001310 <request_memory>:
+    1310:        fec10113        addi x2 x2 -20
+    1314:        00112023        sw x1 0 x2
+    1318:        00a12223        sw x10 4 x2
+    131c:        00452503        lw x10 4 x10
+    1320:        00a12823        sw x10 16 x2
+    1324:        0ffff317        auipc x6 0xffff
+    1328:        e7432303        lw x6 -396 x6
+    132c:        0ffff397        auipc x7 0xffff
+    1330:        e603a383        lw x7 -416 x7
+    1334:        00c00e13        addi x28 x0 12
+    1338:        01012e83        lw x29 16 x2
+    133c:        03de0e33        mul x28 x28 x29
+    1340:        006e0e33        add x28 x28 x6
+    1344:        01c12623        sw x28 12 x2
+    1348:        01c383b3        add x7 x7 x28
+    134c:        00038513        addi x10 x7 0
+    1350:        00000097        auipc x1 0x0 <_start>
+    1354:        df4080e7        jalr x1 x1 -524
+    1358:        00a12423        sw x10 8 x2
+
+0000135c <set_new_program_break>:
+    135c:        10fff297        auipc x5 0x10fff
+    1360:        ca428293        addi x5 x5 -860
+    1364:        00a28533        add x10 x5 x10
+    1368:        0d600893        addi x17 x0 214
+    136c:        00000073        ecall
+    1370:        fff00293        addi x5 x0 -1
+    1374:        04550863        beq x10 x5 80 <brk_fail>
+
+00001378 <extend_heap>:
+    1378:        0ffff297        auipc x5 0xffff
+    137c:        e1428293        addi x5 x5 -492
+    1380:        00812303        lw x6 8 x2
+    1384:        0062a023        sw x6 0 x5
+    1388:        01012283        lw x5 16 x2
+    138c:        00500e63        beq x0 x5 28 <extend_last_chunk>
+
+00001390 <create_new_chunk>:
+    1390:        00412503        lw x10 4 x2
+    1394:        00000593        addi x11 x0 0
+    1398:        00c12603        lw x12 12 x2
+    139c:        00000097        auipc x1 0x0 <_start>
+    13a0:        c78080e7        jalr x1 x1 -904
+    13a4:        0240006f        jal x0 36 <request_memory_return>
+
+000013a8 <extend_last_chunk>:
+    13a8:        00412283        lw x5 4 x2
+    13ac:        0082a303        lw x6 8 x5
+    13b0:        00c12383        lw x7 12 x2
+    13b4:        00730333        add x6 x6 x7
+    13b8:        0062a423        sw x6 8 x5
+    13bc:        00028513        addi x10 x5 0
+    13c0:        0080006f        jal x0 8 <request_memory_return>
+
+000013c4 <brk_fail>:
+    13c4:        00000513        addi x10 x0 0
+
+000013c8 <request_memory_return>:
+    13c8:        00012083        lw x1 0 x2
+    13cc:        01410113        addi x2 x2 20
+    13d0:        00008067        jalr x0 x1 0
+
+000013d4 <free>:
+    13d4:        ff810113        addi x2 x2 -8
+    13d8:        00112023        sw x1 0 x2
+    13dc:        10fff297        auipc x5 0x10fff
+    13e0:        c2428293        addi x5 x5 -988
+    13e4:        0ffff317        auipc x6 0xffff
+    13e8:        da832303        lw x6 -600 x6
+    13ec:        00530333        add x6 x6 x5
+    13f0:        00552fb3        slt x31 x10 x5
+    13f4:        00a32f33        slt x30 x6 x10
+    13f8:        01ff6fb3        or x31 x30 x31
+    13fc:        07f01e63        bne x0 x31 124 <out_of_range_free>
+    1400:        0082af83        lw x31 8 x5
+    1404:        01f28fb3        add x31 x5 x31
+    1408:        00cf8f93        addi x31 x31 12
+    140c:        03f54263        blt x10 x31 36 <chunk_match>
+
+00001410 <match_mem_addr>:
+    1410:        000f8293        addi x5 x31 0
+    1414:        0082af83        lw x31 8 x5
+    1418:        01f28fb3        add x31 x5 x31
+    141c:        00cf8f93        addi x31 x31 12
+    1420:        00a2a3b3        slt x7 x5 x10
+    1424:        01f52e33        slt x28 x10 x31
+    1428:        007e7e33        and x28 x28 x7
+    142c:        ffc002e3        beq x0 x28 -28 <match_mem_addr>
+
+00001430 <chunk_match>:
+    1430:        0042a303        lw x6 4 x5
+    1434:        06600063        beq x0 x6 96 <double_free>
+    1438:        0002a223        sw x0 4 x5
+    143c:        00512223        sw x5 4 x2
+
+00001440 <merge_left>:
+    1440:        00028593        addi x11 x5 0
+    1444:        0005a503        lw x10 0 x11
+    1448:        00000097        auipc x1 0x0 <_start>
+    144c:        e0c080e7        jalr x1 x1 -500
+    1450:        00a01463        bne x0 x10 8 <merge_right>
+    1454:        00412503        lw x10 4 x2
+
+00001458 <merge_right>:
+    1458:        00852283        lw x5 8 x10
+    145c:        00c50593        addi x11 x10 12
+    1460:        005585b3        add x11 x11 x5
+    1464:        00000097        auipc x1 0x0 <_start>
+    1468:        df0080e7        jalr x1 x1 -528
+    146c:        00012083        lw x1 0 x2
+    1470:        00810113        addi x2 x2 8
+    1474:        00008067        jalr x0 x1 0
+
+00001478 <out_of_range_free>:
+    1478:        04000893        addi x17 x0 64
+    147c:        00200513        addi x10 x0 2
+    1480:        0ffff597        auipc x11 0xffff
+    1484:        d1c58593        addi x11 x11 -740
+    1488:        01200613        addi x12 x0 18
+    148c:        00000073        ecall
+    1490:        bd1fe06f        jal x0 -5168 <exit>
+
+00001494 <double_free>:
+    1494:        04000893        addi x17 x0 64
+    1498:        00200513        addi x10 x0 2
+    149c:        0ffff597        auipc x11 0xffff
+    14a0:        d1358593        addi x11 x11 -749
+    14a4:        01200613        addi x12 x0 18
+    14a8:        00000073        ecall
+    14ac:        bb5fe06f        jal x0 -5196 <exit>
