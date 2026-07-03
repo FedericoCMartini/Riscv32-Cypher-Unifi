@@ -1,8 +1,7 @@
 .data
-    myplaintext: .string "STUDENTE123"
-    max_size: .byte 200
-    mycypher: .string "DD"
-    blocKey: .string "OLA"
+    myplaintext: .string "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas dignissim metus ut nibh aliquet sagittis. Cras porta cursus diam, in maximus metus imperdiet vel. Nulla id justo sit amet nunc egestas scelerisque. Donec urna ex, cursus non tellus eu, suscipit vestibulum urna. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum ornare ex quis aliquet maximus. Praesent efficitur faucibus erat in elementum. Aliquam vel iaculis nisi, vel varius erat. Nunc ac. "
+    mycypher: .string "ABCDE"
+    blocKey: .string "OLE"
     .align 2
     sostK: .byte -25
     arena_in_use: .byte 0
@@ -11,52 +10,58 @@
     accepted_cyphers: .string "ABCDE" #for the sanitizer to trunkate the cypher string at the first occurrence of a character not in this string
     
 # project conventions:
-# use of registers based on:
+# use of registers inspired by:
 # https://cs61c.org/sp26/pdfs/discussions/disc05/disc05-pre-sols.pdf
 #
-# additionally:
-# s0 holds stack frame size if defined
 
 # stack management:
-# subtract 8 from sp
-# store ra into 4(sp)
+# push_stack and pop stack can be used to store s0 - s11 registers automatically: 
+# load number of stored register used in a6
+# move ra to a7
+# call push_stack at beginning, and pop stack at end of procedure
+# this will expand and contract the stack to store the given number of registers
 
-# if saved registers are used call store_saved_registers
-# store the number of used registers in 0(sp) -> does not interfere with registers, which is then extracted and reinserted at the end of the procedure
-# load stack frame size in s0 and subtract from sp if stack memory is required
+# if extra stack memory is required it's recommended to define an m4_macro and subtract+add it inbetween push and pop stach calls:
 
-# at the end: 
-# restore stack frame by adding stack size (s0)
-# call restore_saved_registers if store_saved_registers was called at beginning of procedures
-
-# load ra from 4(sp)
-# add 8 to sp
-# return
+# /*m4_define([PROC_NAME_UR], [NUMBER OF USED REGISTERS])*/
+# /*m4_define([PROC_NAME_STACK], [STACK_SIZE])*/
+# procedure_name:
+# li a6, [PROC_NAME_UR]
+# mv a7, ra
+# call push_stack
+# addi sp, sp, -PROC_NAME_STACK
+# ....
+# // procedure body
+# ...
+# addi sp, sp, PROC_NAME_STACK
+# tail pop_stack
 
 # m4_define(`BASE_STACK', 8)
 # m4_define(`RET_ADDR', 4)
 # m4_define(`USED_REGISTERS', 0)
-# m4_define(`A', 65)
-# m4_define(`Z', 90)
-# m4_define(`a', 97)
-# m4_define(`z', 122)
+# m4_define(`ASCII_A', 65)
+# m4_define(`ASCII_Z', 90)
+# m4_define(`ASCII_a', 97)
+# m4_define(`ASCII_z', 122)
 # m4_define(`ASCII_0', 48)
 # m4_define(`ASCII_9', 57)
 # m4_define(`MIN_CHAR', 32)
 # m4_define(`MAX_CHAR', 127)
 # m4_define(`SPACE', 32)
+# m4_define(`ALLOWED_CHARS_N', m4_eval(MAX_CHAR` - 'MIN_CHAR` + 1'))
 
 
 # m4_define(`CYPHER_DATA_SIZE', 20)
+# m4_define(`MAIN_STACK', m4_eval(CYPHER_DATA_SIZE`+ 4'))
 
 .text
 .global _start
 _start:
     la a0, mycypher
-    call sanitize_cypher #this trunkates cypher at first character not in accepted_cyphers
+    # call sanitize_cypher #this trunkates cypher at first character not in accepted_cyphers
                          #necessary because calling the cypher with a bad string breaks the program
 
-    addi sp, sp, -CYPHER_DATA_SIZE
+    addi sp, sp, -MAIN_STACK
     
     mv a0, sp
     call cypher_data_init #loads cypher data onto stack
@@ -67,18 +72,25 @@ _start:
     call cypher_iter #procedure is at the bottom of the file
         #(cypher_iter(plaintext, cypher_data, encrypt=true))
 
+    sw a0, CYPHER_DATA_SIZE (sp)
+
     beq x0, a0, exit #if (cypher(...) == null) exit();
 
     mv a1, sp
     li a2, 0
     call cypher_iter #(cypher_iter(cyphertext, cypher_data, encrypt=false))
+    call free #frees final string
+    lw a0, CYPHER_DATA_SIZE (sp)
+    call free #frees cypher_text
 
-    addi sp, sp, CYPHER_DATA_SIZE
+
+    addi sp, sp, MAIN_STACK
 
     exit:
     li a7, 10
     ecall #exit
 
+# m4_ifdef(`DEBUG', `
 .data
     .align 2
     not_implemented_str: .string "Not implemented\n"
@@ -89,7 +101,8 @@ not_implemented:
     li a7, 4
     mv t1, a0
     ret
-
+# ')
+# 
 # m4_define(MYCYPHER_STR, 0)
 # m4_define(SOSTK, 4)
 # m4_define(BLOCK_KEY, 8)
@@ -100,8 +113,8 @@ not_implemented:
 #a0: encrpt data struct address
 cypher_data_init:
     la t0, mycypher
-    la t1, sostK
-    lb t2, blocKey
+    lb t1, sostK
+    la t2, blocKey
     la t3, dictionary_function
 
     sw t0, MYCYPHER_STR (a0)
@@ -120,16 +133,11 @@ cypher_data_init:
 store_saved_registers: #expands the stack in order to store all saved registers, to be used in junction with restore...
 
     lw t6, USED_REGISTERS (sp) #number of used registers is extracted from stack
-    # li t0, -4
-    # mul t0, t6, t0 
-    # add sp, sp, t0
     slli t0, t6, 2 #stack_shift = -4 * register_needed
     la t1, ssr_jump_table
  
     sub sp, sp, t0
     
-
-    # add t0, t1, t0
     sub t0, t1, t0
     addi t2, t0, ASCII_0
     lw t0, 0(t2)
@@ -164,7 +172,6 @@ store_saved_registers: #expands the stack in order to store all saved registers,
     
     ret
 
-
 .data
     .align 2
     rsr_jump_table: .word rsr_case_12, rsr_case_11, rsr_case_10, rsr_case_9, rsr_case_8, rsr_case_7, rsr_case_6, rsr_case_5, rsr_case_4, rsr_case_3, rsr_case_2, rsr_case_1
@@ -175,8 +182,8 @@ restore_saved_registers: #ectracts all previously saved registers from the stack
 
     lw t0, USED_REGISTERS (sp)
     la t1, rsr_jump_table
-    #    mul t0, t1, t0 #stack_shift = 4 * register_needed
-    slli t0, t0, 2
+
+    slli t0, t0, 2 # n_used_registers * 4 -> for addressing memory
     
     addi t2, t1, 48 #jump_table + 48
     sub t3, t2, t0 #jump table + (48 - stack_shift)
@@ -314,6 +321,36 @@ btoa:
 
 #return: a0: string 
 
+#a0: num, a1: dest
+uitoa:
+    # lw t6, magic_division10_number
+
+    li t4, 10
+    li t6, 1 # pow = 1
+    li t5, 10 #next pow
+
+    blt a0, t5, uitoa_matched
+    uitoa_match_pow:
+        mv t6, t5 #pow = next_pow
+        mul t5, t5, t4 #next_pow *= 10
+
+        bge a0, t5, uitoa_match_pow #while num <= pow * 10
+    uitoa_matched:
+
+    uitoa_digit_loop:
+        div t1, a0, t6 #extract most significant digit
+        addi t0, t1, ASCII_0 #c_digit = num / pow + '0'
+        sb t0, 0(a1) #*dest = c_digit
+        addi a1, a1, 1 #dest++
+        mul t1, t1, t6 #num / pow * pow
+        sub a0, a0, t1 #remove most significant digit
+        div t6, t6, t4 #pow /= 10
+        bne t6, x0, uitoa_digit_loop #while pow > 0
+
+    sb x0, 0(a1) #null terminate
+    ret
+
+
 #copies src into dest up to size - 1 characters and null terminates
 #a0: src #a1: dest #a2: size
 strlncpy:
@@ -411,6 +448,7 @@ str_map:
         j str_map_loop
     end_str_map_loop:
     
+    add t0, s2, s4 
     sb x0, 0(t0) #null terminate new string
     mv a0, s2 #return dest
 
@@ -545,7 +583,7 @@ caesar_sost:  #FUNCTION TEMPLATE DO NOT CALL WITHOUT CURRYING
 
     andi t0, a0, 32 #checks if the letter is lowercase <- every lowercase and upper case letter differs from each other at only at the 6th least sig. bit
     
-    addi a0, a0, -A # c -= 'A'
+    addi a0, a0, -ASCII_A # c -= 'A'
     sub a0, a0, t0 # if (c is lowercase) c -= 32 else c -= 0
 
     caesar_sost_load_k:
@@ -569,7 +607,7 @@ caesar_sost:  #FUNCTION TEMPLATE DO NOT CALL WITHOUT CURRYING
     mul t2, t2, t3 # temp = (modulo < 0) * 26 -> 0 if positive, 26 if negative
     add a0, t1, t2 # c = (letter_n + sostK) % 26 + temp
 
-    addi a0, a0, A # c += 'A'
+    addi a0, a0, ASCII_A # c += 'A'
 
     add a0, a0, t0 #restores letter case
 
@@ -619,87 +657,83 @@ caesar_encrypt:
 # i think of it as creating a lambda function from a set template by altering one variable
 
 
-# m4_define(`BLOCK_I_REGISTER', 31) x31 -> t6
-# m4_define(`BLOCK_STR_REGISTER', 5) x5 -> t0
-# m4_define(`BLOCK_BOOL_REGISTER', 7) x7 -> t2
 
-#a0: character #ONLY CALL AFTER USING CURRY WORD :
+    .data
+        magic_division96_number: .word 43691
+.text
+#a0: character #a1: block_str_char #a2: bool encrypt
+char_map:
+    li t6, ALLOWED_CHARS_N #num of allowed characters
+    li t5, MIN_CHAR
+    beq x0, a2, reverse_map #if encrypt == false
+    char_map_encrypt:
+        add a0, a0, a1 #c += block_char
+        lw t0, magic_division96_number
+        mul t1, t0, a0
+        srai t1, t1, 22 #c / 96
+        mul t1, t1, t6 #
+        sub a0, a0, t1 # c - (c / 96 * 96) -> c %= 96
+        add a0, a0, t5 #c += min_char
+        j char_map_ret
+    reverse_map:
+        sub a0, a0, t5 # c -= min_char
+        sub a0, a0, a1 #c -= block_char
+
+        reverse_mod:
+            bgt a0, t5, char_map_ret
+            add a0, t6, a0 #if (c < min_char) c += 96
+        j reverse_mod
+
+    char_map_ret:
+    ret
+
+# return :#a0 : char
+
+# m4_define(`BLOCK_STR_REGISTER', 5) x5 -> t0
+# m4_define(`BLOCK_I_REGISTER', 6) x6 -> t1
+# m4_define(`BLOCK_BOOL_REGISTER', 12) x12 -> a2
+#a0: src_char
 block_map:
-    block_map_load_i:
-    nop #these two are going to be dynamically edited ->    lui t6 ...
-    nop #this part loads the counter                        addi t6, t6, ...
     block_map_load_str:
     nop #this part loads the block string pointer           lui t0 .... 
-    nop #                                                   addi t0, t0 ...
+    nop #"block_str"                                        addi t0, t0, ...
+    block_map_load_i:
+    nop #these two are going to be dynamically edited ->    lui t1 ...
+    nop #this part loads the counter ptr: "&i"              addi t1, t1, ...
+    block_map_load_bool:
+    nop #this part loads the booolan or encryption          lui a2 ...
+    nop #bool: encrypt                                      addi a2, a2, ...
 
-    lw t5, 0(t6) #t6 will have i address
-    add t1, t0, t5 #t0 will have string address
-    lb t1, 0(t1)
-    bne x0, t1, block_map_continue
+    lw t3, 0(t1) #*i
+    add t2, t0, t3 #&str[*i]
+    lb a1, 0(t2)   #block_c = str[*i]
 
-    # sb x0, 0(t6)
-    lb t1, 0(t0)
-    add t5, x0, x0 #resets i to 0
+    bne x0, a1, continue_block_iter 
+    reset_counter: #if (block_c == 0)
+        mv t3, x0       #temp_i = 0
+        lb a1, 0(t0)    #block_c = str[0]
+    continue_block_iter:
+    addi t3, t3, 1 #temp_i++
+    sw t3, 0(t1)   #*i = temp_i
 
-    block_map_check_reverse:
-    nop #this part int value for encryption/decryption      lui t2 ....      
-    nop #   +1 for encryption, -1 for decryption            add t2, t2, ...
-
-    mul t1, t1, t2 #c *= (encrypt)? 1 : -1
-
-    li t2, ALLOWED_CHARS_N   #max_char - min_char + 1
-    li t3, MAX_CHAR   #max_char 
-
-    block_map_continue:
-    add a0, a0, t1 #c += block_char
-
-    bounds_check:
-    bge t3, a0, within_bounds #if (max_char >= c)
-
-    sub a0, a0, t2
-    jal x0, bounds_check
-    within_bounds:
-
-    addi t5, t5, 1
-    sw t5, 0(t6)
-
-    jalr x0, ra, 0
-
-    block_map_limit: #tag delimits the procedure body, can be used to determine size 
-    #(block_map_limit - block_map)
-    nop 
-# return :#a0 : char
+    tail char_map #char_map(src_c, block_c, bool: encrypt)
 
 
 #writes two operations which load a given word 
 #a0: word, #a1: register, a2: dest
 curry_word:
-
-    #lui t6, x -> x = &var >>(logical) 12
-    #0b00000000000000000000?????0110111
-    #  [ space for value  ][rd-][opcode]
-    #   val >> 12 << 12
-    #                       reg << 7
-    srli t0, a0, 12
-    slli t0, t0, 12 #wipes last 12 bits
-    ori t0, t0, 0b0110111 #opcode
-    slli t6, a1, 7 # register << 7
-    or t0, t0, t6
-    sw t0, 0(a2)
-    
-
-    
-    #ori t6, y -> y = &var & (-1 << 12)
-    #0b000000000000?????110?????0010011
+        
+    #addi t6, y -> y = &var & (-1 << 12)
+    #0b000000000000?????000?????0010011
     #  [   value  ][rs-][f][-rd][opcode]
     #   value << 20
     #               reg << 15
     #                    reg << 7
 
-    lui t0, 6 #funct3@
     slli t1, a0, 20 #
-    ori t0, t0, 0b0010011 #opcode
-    or t0, t0, t1
+    slt t5, t1, x0 #checks if the most significant bit is 1
+    slli t6, a1, 7 # register << 7
+    ori t0, t1, 0b0010011 #opcode
     
     or t0, t0, t6 # reg << 7
 
@@ -707,6 +741,22 @@ curry_word:
     or t0, t0, t2 # reg << 15
 
     sw t0, 4(a2)
+
+    #lui t6, x -> x = &var >>(logical) 12
+    #0b00000000000000000000?????0110111
+    #  [ space for value  ][rd-][opcode]
+    #   val >> 12 << 12
+    #                       reg << 7
+    srli t0, a0, 12
+    add t0, t0, t5 #adds bit in case lower part's msb is 1
+    slli t0, t0, 12 #wipes last 12 bits
+    ori t0, t0, 0b0110111 #opcode
+    
+    or t0, t0, t6
+    sw t0, 0(a2)
+    
+
+    
 
     mv a0, x0
     ret
@@ -731,14 +781,13 @@ create_block_lambda:
 
     sw x0, 0(s1) #i = 0
     mv a0, s1 #&i
-    li a1, BLOCK_I_REGISTER #t6
+    li a1, BLOCK_I_REGISTER #t1
     la a2, block_map_load_i
     call curry_word #curries iterator address
 
-    slli a0, s1, 1 #bool encrypt *= 2
-    addi a0, a0, -1 #bool encrypt * 2 - 1 -> (encrypt)? 1 : -1
-    li a1, BLOCK_BOOL_REGISTER #t2
-    la a2, block_map_check_reverse
+    mv a0, s2 #bool encrypt
+    li a1, BLOCK_BOOL_REGISTER #a2
+    la a2, block_map_load_bool
     call curry_word #curries encryption/decryption sign
 
     tail pop_stack
@@ -748,8 +797,8 @@ create_block_lambda:
 
 #s1: src
 #s2: src_len
-# m4_define(BLOCK_STACK, 3)
-# m4_define(BLOCK_UR, 4)
+# m4_define(BLOCK_STACK, 4)
+# m4_define(BLOCK_UR, 3)
 block:
     li a6, BLOCK_UR
     mv a7, ra
@@ -761,7 +810,7 @@ block:
     mv s2, a1 #src_len   
     
     mv a0, a2 #load block_str as arg
-    add a1, sp, 0 #address of i on the stack
+    addi a1, sp, 0 #address of i on the stack
     mv a2, a3
     call create_block_lambda #create_block_lambda(block_str, &i, bool: encrypt) 
     #curries three value into block_map
@@ -781,7 +830,7 @@ block:
 # m4_define(`ARENA_HEADER_SIZE', 8)
 #a0: size
 new_arena:
-    ble x0, a0, failed_arena_init #size <= 0
+    bge x0, a0, failed_arena_init #size <= 0
 
     addi sp, sp, -8
     sw ra, 0(sp)
@@ -795,6 +844,12 @@ new_arena:
     lw t0, 4(sp) #reload size
     sw t0, ATTR_ARENA_MAX (a0) #arena.max = size
     sw x0, ATTR_ARENA_USED (a0) #arena.used_memory = 0
+
+    sw a0, 4(sp) #store return addr on stack
+    addi a0, a0, ARENA_HEADER_SIZE #ptr + header_size: so that you don't overwrite the header section
+    mv a1, t0    #arena_size
+    call bzero   #initializes memory area to zero
+    lw a0, 4(sp) #restores 
 
     arena_return:
 
@@ -823,7 +878,7 @@ block_decypher:
 #s1: return pointer
 #s2: arena_ptr
 # m4_define(ARENA_ALLOC_STACK, 4)
-# m4_define(ARENA_ALLOC_UR, 2)
+# m4_define(ARENA_ALLOC_UR, 3)
 arena_alloc:    
     sltiu t0, a1, 1 #(arena_ptr == null)
     slti t1, a0, 1 #request_size <= 0
@@ -857,9 +912,9 @@ arena_alloc:
     addi s1, s2, ARENA_HEADER_SIZE #ptr = arena_ptr + header_size    
     add s1, t1, s1           #ptr = mem_arena + arena_size
     
-    mv a1, a0 #request_size
-    mv a0, s1 #ret_ptr
-    call bzero #bzero(ptr, request_size)
+    #mv a1, a0 #request_size
+    #mv a0, s1 #ret_ptr
+    #call bzero #bzero(ptr, request_size) moved to new_arena as optimization
 
     arena_alloc_return:
 
@@ -870,8 +925,8 @@ arena_alloc:
 
 #return: a0: mem_block_address
 
-# m4_define(`OCCURRENCE_NODE_SIZE', 5)
-# m4_define(`ALLOWED_CHARS_N', m4_eval(MAX_CHAR` - 'MIN_CHAR` + 1'))
+# m4_define(`OCCURRENCE_NODE_SIZE', 8)
+# m4_define(`ATTR_OC_NEXT', 4)
 # m4_define(`OCCURRENCE_MAP_SIZE', m4_eval(ALLOWED_CHARS_N` * 4'))
 
 #a0: occurrence, a1: list_node **node, a2:arena_allocator
@@ -889,7 +944,7 @@ add_occurrence:
     beq x0, t0, new_occurrence_node 
 
     occ_list_end_search:        #while (node != null)
-        addi a1, t0, 1          #*addr = &node->next;
+        addi a1, t0, ATTR_OC_NEXT          #*addr = &node->next;
         lw t0, 0(a1)            #node = *addr;
         bne x0, t0, occ_list_end_search
 
@@ -905,8 +960,8 @@ add_occurrence:
 
     sw a0, 0(s2) #*addr = node
     
-    andi s1, s1, 0xff #trunkate to byte size
-    sb s1, 0(a0) #node->occurrence = occurrence; (*node)->next = null
+    # andi s1, s1, 0xff #trunkate to byte size
+    sw s1, 0(a0) #node->occurrence = occurrence; (*node)->next = null
 
     li a0, 1 #retval = true
 
@@ -922,7 +977,7 @@ add_occurrence:
 #s2: dest
 #s3: dest_size
 #s4: copied_characters
-# m4_define(ECO_STACK, 8)
+# m4_define(ECO_STACK, 12)
 # m4_define(ECO_UR, 6)
 encrypt_char_occurrence:
     li a6, ECO_UR
@@ -936,23 +991,18 @@ encrypt_char_occurrence:
     mv s2, a2
     mv s3, a3
     li t0, 45 #'-'
-    sb t0, 0(sp) #initialize char array[8] with '-'
+    sb t0, 0(sp) #initialize char array[ECO_STACK] with '-'
+    li s4, 1 #starts copied characters from 1 ^
 
-    # li t1, 32
-    
-    # beq a0, t1, occurrence_encrypt_loop
-                     #this part is skipped when character is " " - changed
-    sb a0, 0(a2)
-    # addi s4, s4, 1
-    li s4, 1
+    sw a0, 0(a2)
 
     occurrence_encrypt_loop:
-        lb a0, 0(s1)
+        lw a0, 0(s1)
         addi a1, sp, 1 # concats "-" with num string
-        call btoa #char[4] num = btoa(occurrence_list->occurrece, num);
+        call uitoa #char[ECO_STACK] num = uitoa(occurrence_list->occurrece, num);
         
         
-        mv a0, sp #src = char str_num[8]
+        mv a0, sp #src = char str_num[ECO_STACK]
         sub t0, s3, s4 #dest_size - copied_characters
         addi a2, t0, 1 #dest_size ^ + space for null terminator
         add a1, s2, s4 #dest = dest + copied_characters
@@ -961,7 +1011,7 @@ encrypt_char_occurrence:
         add s4, s4, a0 # copied_characters += strlncpy(str_num, dest + copied_characters, dest_size - copied_characters)
         
 
-        lw s1, 1(s1) #occurrece_list = occurrece_list->next
+        lw s1, ATTR_OC_NEXT (s1) #occurrece_list = occurrece_list->next
 
         slt t1, s4, s3 #written_characters < dest_size
         slt t0, x0, s1 #occurrece_list != null
@@ -1039,7 +1089,7 @@ get_occurrence_map:
 
 #a0: occurrence_map, #a1: src_len
 occurrence_dest_size:
-    li t0, 0#unique_characters
+    li t0, 0 #unique_characters
     li t6, OCCURRENCE_MAP_SIZE #occurrence_map.length() * sizeof(ptr)
     
     li t3, 0 #i = 0
@@ -1047,7 +1097,7 @@ occurrence_dest_size:
         add t2, a0, t3
         lw t2, 0(t2) #occurrence_map[i]
 
-        sltiu t2, t2, 1 #occurrene_map[i] != null
+        slt t2, x0, t2 #occurrene_map[i] != null
         add t0, t0, t2 #unique_characters += occurrene_map[i] != null
 
         addi t3, t3, 4 #i += sizeof(ptr)
@@ -1077,7 +1127,7 @@ occurrence_dest_size:
         addi t3, t3, 1 #e++
         mv t6, t2 #prev_pow = pow
         mul t2, t2, t5 #pow *= 10
-        blt t6, a1, total_numstring_size_of_len 
+        bge a1, t2, total_numstring_size_of_len #while (src_len >= n)
 
     remaining_numstrings:
     addi t6, t6, -1 #pow / 10 - 1
@@ -1196,7 +1246,7 @@ occurrence_encrypt:
     mv s2, a1 #store src_len
 
     li t0, OCCURRENCE_NODE_SIZE
-    mul t0, s2, t0 #src_len * sizeof(list_node)
+    mul a0, s2, t0 #src_len * sizeof(list_node)
 
     call new_arena #new_arena(src_len * sizeof(list_node))
     beq x0, a0, end_occurrence #if the arena is not available
@@ -1215,7 +1265,7 @@ occurrence_encrypt:
     call occurrence_dest_size #ocds(occurrence_map, src_len)
     mv s2, a0 #str_len = occurrence_dest_size(oc_map, src_len)
 
-    add a0, sp, OC_MAP_STACK #occurrence_map
+    addi a0, sp, OC_MAP_STACK #occurrence_map
     mv a1, s2                #dest_len
     call occurrence_construct_cypher_text
     
@@ -1234,18 +1284,18 @@ occurrence_encrypt:
 
 # m4_define(`ASCII_TAB', 9) #not needed because 
 # m4_define(`ASCII_CR', 13)
-# m4_define(`ASCII_+', 43)
-# m4_define(`ASCII_-', 45)
+# m4_define(`ASCII_PLUS', 43)
+# m4_define(`ASCII_MINUS', 45)
 #a0: str
-atou:
+atoui:
     lb t0, 0(a0)    
     li t1, SPACE
 
-    beq t0, t1, not_space
-    atou_skip_space:
+    bne t0, t1, not_space
+    atoui_skip_space:
         addi a0, a0, 1
         lb t0, 0(a0)
-        bne t0, t1, atoi_skip_space
+        beq t0, t1, atoui_skip_space
 
     not_space:
     li t6, 0 #n = 0
@@ -1254,9 +1304,9 @@ atou:
     slti t1, t0, ASCII_0 #str[0] < '0'
     slt t2, t5, t0 #'9' < str[0] 
     or t1, t1, t2
-    beq x0, t1, atou_ret #if str[0] is not a number
+    bne x0, t1, atoui_ret #if str[0] is not a number
     li t4, 10
-    atou_loop:
+    atoui_loop:
         addi t3, t0, -ASCII_0 #digit = src[0] - '0'
         addi a0, a0, 1 #src++
         
@@ -1270,9 +1320,9 @@ atou:
         slti t1, t0, ASCII_0 #str[0] < '0'
         slt t2, t5, t0 #'9' < str[0] 
         or t1, t1, t2
-        bne x0, t1, atou_loop #if str[0] is not a number
+        beq x0, t1, atoui_loop #if str[0] is not a number
 
-    atou_ret:
+    atoui_ret:
     mv a0, t6
     ret
 
@@ -1287,8 +1337,8 @@ strchr:
         add t0, a0, t6
         lb t0, 0(t0)
 
-        bne t0, a1, strchr_end
-        bne t0, x0, strchr_end
+        beq t0, a1, strchr_end
+        bne t0, x0, strchr_loop
 
     strchr_end:
     mv a0, t6
@@ -1309,17 +1359,17 @@ occurrence_plaintext_size:
     mv s1, a0 #store str
     mv s2, x0 #max_num = 0
     mv s3, x0 #i = 0
-    li s4, ASCII_- #'-'
+    li s4, ASCII_MINUS #'-'
 
     lb t0, 0(s1) #str[0]
     beq x0, t0, plaintext_size_ret
     beq s4, t0, found_dash
     occurrence_ct_iter:
         next_dash:
-            addi s3, s3, 1#i++
-
-            lb t0, 0(a0)
-            # xori t1, t0, ASCII_- # str[i] != -
+            addi s3, s3, 1 #i++
+            add t0, s1, s3
+            lb t0, 0(t0)
+            # xori t1, t0, ASCII_MINUS # str[i] != -
             # sltiu t2, t0, 1      # str[i] == 0
             # sltiu t1, t1, 1      # (str[i] != '-') == 0 -> str[i]
             # or t1, t1, t2
@@ -1334,10 +1384,10 @@ occurrence_plaintext_size:
         after_dash:
 
         add a0, s1, s3 #str + i
-        call atou
-        bge s2, a0, next_dash #(atou(&str[i]) < max_num)
+        call atoui
+        bge s2, a0, next_dash #(atoui(&str[i]) < max_num)
         store_max:
-            mv s2, a0 #max_num = atou(&str[i])
+            mv s2, a0 #max_num = atoui(&str[i])
 
         j next_dash
 
@@ -1366,15 +1416,17 @@ restore_char_by_occurrence:
 
     char_occurrence_loop:
         add a0, s1, s3 #src + i
-        call atou
+        call atoui
 
+        addi a0, a0, -1 #char occurrences are 1 index based
         add t0, a0, s2
-        sb s4, 0(t0)# dest[atou(src + i)] = char
+        sb s4, 0(t0)# dest[atoui(src + i)] = char
     
         add a0, s1, s3 #src + i
-        li a1, ASCII_- # '-'
+        li a1, ASCII_MINUS # '-'
         call strchr #strchr(src + i, '-') advances to next '-'
-        add s3, a0, 1 #i = strchr(src + i, '-') + 1
+        add s3, s3, a0
+        addi s3, s3, 1 #i += strchr(src + i, '-') + 1
 
         blt s3, s5, char_occurrence_loop #while i < strchr(src, ' ')
 
@@ -1382,7 +1434,7 @@ restore_char_by_occurrence:
 
     tail pop_stack
 
-# m4_define(`OCPT_UR', 6)
+# m4_define(`OCPT_UR', 7)
 #a0: src #a1: dest
 #a0: cypher_text
 #s1: str
@@ -1390,6 +1442,7 @@ restore_char_by_occurrence:
 #s3: i
 #s4: dest
 #s5: next_group
+#s6: ' '
 occurrence_construct_plain_text:
     li a6, OCPT_UR
     mv a7, ra
@@ -1400,25 +1453,30 @@ occurrence_construct_plain_text:
     # mv s3, x0 #i = 0
     mv s4, a1 #store dest
     li s5, -1 #next_group = -1
+    li s6, SPACE # ' '
 
-    occurrence_ct_iter:
+    occurrence_cpt_iter:
         addi s3, s5, 1 #i = next_group + 1
         add a0, s1, s3 #src + i
-        li a1, SPACE   #' '
+        mv a1, s6   #' '
+        ocpt_search_next_group:
         call strchr    #strchr(src + i, ' ')
-        mv s5, a0 #next_group = strchr(src + 1, ' ') #next space / str end
+        add s5, s3, a0 #next_group += strchr(src + 1, ' ') #next space / str
+        slti t0, s5, 2 #if (next_group < 2 -> space as a non separating character was found)
+        bne x0, t0, ocpt_search_next_group
+        
 
         add a0, s1, s3  #src + i
         mv a1, s4       #dest
-        mv a2, s5       #next_group
+        sub a2, s5, s3  #next_group -> relative index
         call restore_char_by_occurrence #restore...(src + i, dest, strchr(src + i, ' '))
 
         add t0, s1, s5
         lb t0, 0(t0)
-        bne x0, t0, occurrence_ct_iter
+        bne x0, t0, occurrence_cpt_iter
 
-    plaintext_size_ret:
-    mv a0, s2
+    construct_plaintext_ret:
+    mv a0, s4
     tail pop_stack
 
 
@@ -1446,35 +1504,35 @@ occurrence_decypher:
 
     call occurrence_construct_plain_text
     
-    add t0, s2, s1 #pointer to end str
+    add t0, s2, a0 #pointer to end str
     sb x0, 0(t0) #null terminate
 
     occurrence_decypher_ret:
 
     mv a1, s2
     tail pop_stack
-#return: a0: plain text
+#return: a0: plain text a1: len
 
 #a0: one character
 
 dictionary_function:
 
-    li t0, A #'A'
-    li t1, Z #'Z'
+    li t0, ASCII_A #'A'
+    li t1, ASCII_Z #'Z'
 
     blt a0, t0, not_upper
     bgt a0, t1, not_upper #if (c >= 'A' && c <= 'Z')
     
-        li t1, z #'z'
+        li t1, ASCII_z #'z'
     
     j end_dict_if
     not_upper:
-        li t0, a #'a'
-        li t1, z #'z'
+        li t0, ASCII_a #'a'
+        li t1, ASCII_z #'z'
         blt a0, t0, not_letter
         bgt a0, t1, not_letter  #if (c >= 'a' && c <= 'z')
 
-        li t1, Z #'Z'
+        li t1, ASCII_Z #'Z'
 
         j end_dict_if
     not_letter:
@@ -1535,7 +1593,7 @@ inversion:
     call malloc #malloc (src_len + 1)
     beq x0, a0, end_inversion #if malloc fails, inversion returns null
 
-    mv s6, a0 #dest = malloc(src_len + 1)
+    mv s4, a0 #dest = malloc(src_len + 1)
 
     li s3, 0 #i = 0
     beq s3, s2, end_inv_loop #skip loop if len is zero
@@ -1555,7 +1613,7 @@ inversion:
     sb x0, 0(t0) #dest[len] = 0 null termination
 
     end_inversion: #end of the procedure, restores the stack and returns the inverted string
-    mv a0, s6 #to return the string
+    mv a0, s4 #to return the string
     mv a1, s2 #to return the string's length
     add t0, a0, s2
     sb x0, 0(t0) #null terminate
@@ -1604,7 +1662,7 @@ sanitize_cypher:
 .data
         .align 2
     encrpt_jump_table: .word encrypt_case_A, encrypt_case_B, encrypt_case_C, encrypt_case_D, encrypt_case_E
-    decypher_jump_table: .word decypher_case_A, decypher_case_B, decypher_case_C, decypher_case_D, decypher_case_E 
+    decypher_jump_table: .word decypher_case_A, decypher_case_B, decypher_case_C, encrypt_case_D, encrypt_case_E 
 .text
 
 
@@ -1623,7 +1681,7 @@ sanitize_cypher:
     li s4, -1 # increment = -1
     li s5, -1 #iterate until i >= 0
 
-    J cypher_loop
+    j cypher_loop
 
 #a0: object_text
 #a1: t_cypher_data: {cypher, sostK, blocKey, dictionary_func}
@@ -1645,8 +1703,8 @@ sanitize_cypher:
 #depending on the "encrypt" argument boolean in a2 the cases encrypt or decrypt the string
 #in each case, one of the 5 defined encrypting procedures is called with its associated arguments
 
-# encrypting procedure convention: a0: src_str, a1: src_len, a2: encryption_key/dictionary_function 
-# -> return (a0: encryption str, // to implement: a1: len)
+# encrypting procedure convention: a0: src_str, a1: src_len, a2: extra argument -> A: SostK, B: blocKey, D: dictionary_function
+# -> return (a0: encryption str, a1: len)
 # m4_define(CYHPER_STACK, 4)
 # m4_define(CYPHER_UR,  9)
 cypher_iter:
@@ -1670,7 +1728,7 @@ cypher_iter:
 
     beq a0, x0, end_cypher_loop #cypher_data.cypher.lenght() == 0
 
-    bne a5, x0, encrpt_init # if (encrypt == false)
+    bne a2, x0, encrpt_init # if (encrypt == false)
     j decypher_init 
     #used to be in procedure body but i extracted it for readability's sake
 
@@ -1682,7 +1740,7 @@ cypher_iter:
         lb t0, 0(t0)    #mycypher[i]
 
         cypher_switch:
-        addi t0, t0, -A #temp = mycypher[i] - 'A'
+        addi t0, t0, -ASCII_A #temp = mycypher[i] - 'A'
         slli t0, t0, 2 #temp *= 4
         add t0, s6, t0 #temp += &jump_table
         
@@ -1732,7 +1790,9 @@ cypher_iter:
             
             mv a0, t0 #loads src_str as argument
             call free #free(src_str)
-             
+            
+            mv a0, s1
+
         no_free_src:
 
         mv s7, x0 #first_cycle = false
@@ -1746,6 +1806,9 @@ cypher_iter:
 
         add s3, s3, s4 #i += increment
         bne s3, s5, cypher_loop #while(i != end)
+
+    mv a0, s1
+
     end_cypher_loop:
 
     

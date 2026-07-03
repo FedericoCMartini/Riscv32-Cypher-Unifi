@@ -6,23 +6,13 @@
 # word           word         word
 #{ptr * prev, bool occupied, int size}
 
-# best fit algorithm searches for the smallest free chunk
-# split chunk on left/right to conserve the biggest contiguous chunk of free memory
-# (if there's an allocated chunk to the right allocate memory at the right end, then )
+# best fit algorithm searches for the smallest free chunk and allocate it
 
 # when the program runs out of memory call brk() to extend the memory of the program, return 0 in case of error
 # request memory in increments of chunk_size, or multiples of chunk_size if more memory is requested
-# keep track of program size in s1 (pointer to mega structure)
-# megastructure {
-# dword program_size
-# word  requested_chunk_size
-# ptr *chunk_list
-# }
+# keep track of program size in head_size
 
 # size of ptr = word
-
-
-# figure out if chunks are contiguous if requested separately
 
 # m4_define(C_PREV, 0)
 # m4_define(C_OCCUPIED, 4)
@@ -230,7 +220,7 @@ strncpy:
     mv a0, a1
     ret
 
-m4_ifdef(`COMBINE', `', `
+m4_ifdef(`DEBUG', `
 
 #a0: addr #a1: message
 log_addr:
@@ -276,7 +266,9 @@ print_newline:
     lw ra, 0(sp)
     addi sp, sp, 4
     ret
+')
 
+m4_ifdef(`COMBINE', `', `
 #a0: str #a1 message #a2: len
 log_str:
     addi sp, sp, -4
@@ -384,13 +376,25 @@ best_fit_chunk_search:
     bge s2, s4, end_chunk_search #current chunk >= heap_start + (heap_size - header_size)
 
     chunk_search: #while loop, loops over whole heap
-
     
         lw t0, C_OCCUPIED (s2)
+        lw t1, C_SIZE (s2) #loads current.size
+        m4_ifdef(`DEBUG', `
+        andi t2, t1, 0b11 #size % 4
+        slt t2, x0, t2 #size % 4 != 0
+        li t3, 1
+        sltu t3, t3, t0 #(1 < occupied)->value isnt in range
+        or t2, t3, t2
+        lw t3, C_PREV (s2)
+        xor t3, s5, t3 #zero if equal
+        mul t3, s5, t3 #if prev == null then ignores 
+        or t2, t3, t2 #size % 4 != 0 occupied != 1 and 0, current.prev != prev
+        bne x0, t2, search_chunk_error
+
+        ')
         sltu t6, x0, t0 #(chunk.occupied != 0)
         
-        lw t0, C_SIZE (s2) #loads current.size
-        slt t5, t0, a0 #(current.size < requested_bytes)
+        slt t5, t1, a0 #(current.size < requested_bytes)
         or t6, t6, t5
         bne t6, x0, next_chunk #if (!current.occupied || current.size < request_size) skip
         
@@ -432,7 +436,49 @@ best_fit_chunk_search:
 
 #ret_val: a0: best_fit, a1: last_chunk
 
+m4_ifdef(`DEBUG', `
+.data
+            malformed_chunk: .string "Error: Malformed chunk at "
+            chunk_attr_pre: .string "{ prev: "
+            chunk_attr_mid: .string ", occupied: "
+            chunk_attr_last: .string ", size: "
+            chunk_attr_post: .string " }"
+        .text
 
+
+    #a0: chunk, #a1: msg
+    log_chunk: 
+    
+    addi sp, sp, -8
+    sw ra, 0(sp)
+    sw a0, 4(sp)
+
+    call log_addr
+
+    lw a0, 4(sp)
+
+    call chunk_tostr
+
+    li a7, 11
+    li a0, 10
+    ecall #print "\n"
+
+    lw ra, 0(sp)
+    addi sp, sp, 8
+     
+    ret
+
+
+    search_chunk_error:
+        
+    mv a0, s2
+    la a1, malformed_chunk
+    call log_chunk
+
+    li a7, 10
+    li a0, 1
+    ecall #exit
+')
 
 fit_request_chunk_size:
     la t1, request_size
@@ -446,10 +492,17 @@ increase_request_chunk_size: #while loop that increases the size of a request
     
     chunk_size_fits_request_size:
     ret
+
+m4_ifdef(`DEBUG', `.data
+    new_chunk_str: .byte 10, 11
+    .string "New chunk made at " 
+    freed_chunk:  .byte 10, 11 
+    .string "Chunk freed at " 
+    .text')
     
 #a0: last_chunk, a1: new_chunk_size, a2: available_memory
 new_chunk:
-    addi sp, sp, -8
+    addi sp, sp, -12
     sw ra, 0(sp)
 
     andi a2, a2, -4 #4 aligns available memory by shrinking
@@ -459,15 +512,14 @@ new_chunk:
     
     _align_requested_size:
         
-        addi sp, sp, -8
+        addi sp, sp, -4
         sw a0, 0(sp)
-        sw a2, 4(sp)
         mv a0, a1
         call four_align_size
         mv a1, a0
         lw a0, 0(sp)
-        lw a2, 4(sp)
-        addi sp, sp, 8
+        addi sp, sp, 4
+        lw a2, 8(sp)
 
     four_aligned_chunk_size:
     
@@ -515,19 +567,40 @@ new_chunk:
     
     li t0, 4 #min_size
     addi t0, t0, C_HEAD_SIZE
-    blt a2, t0, new_chunk_end #available_memory < header_size + min_size
+    blt a2, t0, check_chunk_after_new #available_memory < header_size + min_size
 
-    chunk_with_leftover_memory:
+    new_chunk_with_leftover_memory:
         sw a1, C_SIZE (a0) #new.size = size
 
         mv a1, x0
         call new_chunk #(current_chunk, 0, available_size - size)
+        j new_chunk_return
+
+    check_chunk_after_new:
+
+        lw t0, C_SIZE (a0)
+        add t0, t0, a0 #current + size
+        addi t0, t0, C_HEAD_SIZE #next = current.size + sizeof header
+
+        la t1, heap_start
+        lw t2, heap_size
+
+        add t1, t2, t1 #heap_outer_bound
+
+        bgt t0, t1, new_chunk_return #if next > heap outer bound return
+
+        sw a0, C_PREV (t0) #next.prev = current 
 
     new_chunk_return:
     lw a0, 4(sp)
-    new_chunk_end:
+    new_chunk_end:m4_ifdef(`DEBUG',`
+    
+    la a1, new_chunk_str
+    call log_chunk
+    lw a0, 4(sp)')
+    
     lw ra, 0(sp)
-    addi sp, sp, 8
+    addi sp, sp, 12
     ret
 #return: #a0: new chunk
 
@@ -544,7 +617,21 @@ split_chunk:
     addi sp, sp, -8
     sw ra, 0(sp)
     sw a0, 4(sp)
+    m4_ifdef(`DEBUG',`
+    
+    .data
+    split_msg: .string "Splitting chunk at "
+.text
 
+    addi sp, sp, -4
+    sw a1, 0(sp)
+    la a1, split_msg
+    call log_chunk
+    lw a1, 0(sp)
+    addi sp, sp, 4
+    lw a0, 4(sp)
+
+    ')
     lw t2, C_SIZE (a0) #chosen_chunk.size
     sub t3, t2, a1 #leftover memory = chosen.size - target_size
     
@@ -552,6 +639,9 @@ split_chunk:
 #    sw a1, C_SIZE (a0) #chunk.size = target_size
 
     lw a0, C_PREV (a0) #chunk.prev
+    
+    addi a2, a2, C_HEAD_SIZE
+    resize_left:
     call new_chunk #(chunk.prev, target_size, previous_chunk_size)
     #tries to create a new chunk after the previous one, nothing happens if not enough memory is available
     
@@ -616,7 +706,13 @@ failed_malloc:
     li a0, 0
 
 malloc_return:
-
+    m4_ifdef(`DEBUG', `
+    addi sp, sp, -4
+    sw a0, 0(sp)
+    call print_heap
+    lw a0, 0(sp)
+    addi sp, sp, 4
+    ')
     lw ra, 0(sp)
     lw t0, malloc_stack_size
     add sp, sp, t0
@@ -694,6 +790,19 @@ merge_chunks:
 
     proceed_to_merge:
 
+    m4_ifdef(`DEBUG', `
+    addi sp, sp, -12
+    sw a0, 0(sp)
+    sw a1, 4(sp)
+    sw ra, 8(sp)
+    call log_pre_merge
+    
+    lw a0, 0(sp)
+    lw a1, 4(sp)
+    lw ra, 8(sp)
+    addi sp, sp, 12
+    ')
+
     lw t1, C_SIZE (a1) #right.size
     sw x0, C_PREV (a1) #####
     sw x0, C_OCCUPIED (a1) # wipe right chunk
@@ -715,11 +824,114 @@ merge_chunks:
     add t0, t0, t2 #left.size + header_size + right.size
 
     sw t0, C_SIZE (a0) #left.size += right.size + header_size
+    m4_ifdef(`DEBUG', `
+    addi sp, sp, -8
+    sw a0, 0(sp)
+    sw ra, 4(sp)
+    .data
+        post_merge_msg: .string "Merge result "
+.text
+    la a1, post_merge_msg
+    call log_chunk
     
+    lw ra, 4(sp)
+    lw a0, 0(sp)
+    addi sp, sp, 8')
     merge_return:
         
     ret
 #return: a0 merged_chunk/null on fail
+
+
+m4_ifdef(`DEBUG', `
+    chunk_tostr:
+    addi sp, sp, -8
+    sw ra, 0(sp)
+    sw a0, 4(sp)
+    
+
+    li a7, 4
+    la a0, chunk_attr_pre
+    ecall
+
+    lw t0, 4(sp)
+
+    lw a0, C_PREV (t0)
+    li a7, 34 
+    ecall
+
+    li a7, 4
+    la a0, chunk_attr_mid
+    ecall
+
+    lw t0, 4(sp)
+
+    lw a0, C_OCCUPIED (t0)
+    li a7, 1
+    ecall
+
+    li a7, 4
+    la a0, chunk_attr_last
+    ecall
+    
+    lw t0, 4(sp)
+    
+    lw a0, C_SIZE (t0)
+    li a7, 1
+    ecall
+
+    li a7, 4
+    la a0, chunk_attr_post
+    ecall
+
+    addi sp, sp, 8
+    ret
+
+    .data
+        merge_pre: .string "Trying to merge "
+        merge_mid: .string " with "
+.text
+    #a0: left, a1: right
+    log_pre_merge:
+    addi sp, sp, -12
+    sw ra, 0(sp)
+    sw a0, 4(sp)
+    sw a1, 8(sp)
+
+    la a0, merge_pre
+    li a7, 4
+    ecall
+
+    lw a0, 4(sp)
+    li a7, 34 #print hex
+    ecall
+
+    la a0, merge_mid
+    li a7, 4
+    ecall
+
+    lw a0, 8(sp)
+    li a7, 34
+    ecall
+
+    li a0, 10
+    li a7, 11
+    ecall #"\n"
+
+    lw a0, 4(sp)
+    call chunk_tostr
+
+    lw a0, 8(sp)
+    call chunk_tostr
+
+    li a0, 10
+    li a7, 11
+    ecall #"\n"
+
+    lw ra, 0(sp)
+    addi sp, sp, 12
+    ret
+')
     
 #a0: last_chunk, a1: request_size  
 make_newly_requested_memory_chunk:
@@ -778,14 +990,16 @@ request_memory:
     lw t1, 8(sp) 
     sw t1, 0(t0) #heap_size = new_heap_size
 
-    
+    lw t0, 16(sp) #last_chunk.occupied
+    beq x0, t0, extend_last_chunk #if !last_chunk.occupied
     create_new_chunk:
     lw a0, 4(sp) #last_chunk
-    lw a1, 12(sp) # how much the program memory was extended
+    mv a1, x0
+    lw a2, 12(sp) # how much the program memory was extended
     call new_chunk
 
         
-    mv a0, t1
+    #mv a0, t1
     j request_memory_return
     
 extend_last_chunk:    
@@ -794,7 +1008,7 @@ extend_last_chunk:
     lw t2, 12(sp)# requested bytes
     
     add t1, t1, t2
-    sw t2, C_SIZE (t0) #chunk_size += requested_bytes
+    sw t1, C_SIZE (t0) #chunk_size += requested_bytes
     mv a0, t0
     j request_memory_return
     
@@ -808,12 +1022,94 @@ request_memory_return:
     ret
     
     
+m4_ifdef(`DEBUG', `
+print_heap:
+    addi sp, sp, -4
+    sw ra, 0(sp)
+    addi sp, sp, -20
+    sw s1, 0(sp)
+    sw s2, 4(sp)
+    sw s3, 8(sp)
+    sw s4, 12(sp)
+    sw s5, 16(sp)
+    addi sp, sp, -104
+
+
+    la s1, heap_start
+    lw s2, heap_size
+    add s2, s2, s1
     
+    li s4, 0
+    li s5, 100
+    mv s3, s1
+    print_heap_loop:
+        lw t0, C_OCCUPIED (s3)
+
+        li t1, -11
+        mul t0, t0, t1
+        addi t0, t0, 46 #defines char that represents the chunk
+
+        lw t1, C_SIZE (s3)
+        mul t1, t1, s5 #current.size * 100
+        sub t5, s2, s1 #heap_size
+        div t1, t1, t5 #current.size * 100 / heap_size
+
+
+        li t5, 2
+        blt t1, t5, p_chunk_divider
+        big_chunk_notation:
+            add t6, sp, s4
+            sb t0, 0(t6)
+
+            addi s4, s4, 1
+            addi t1, t1, -1
+            bgt t1, x0, big_chunk_notation
+        p_chunk_divider: 
+        add t6, sp, s4
+        li t0, 47
+        sb t0, 0(t6)
+        addi s4, s4, 1
+
+        print_chunk:
+        mv a0, s3
+        call chunk_tostr
+
+        lw t0, C_SIZE (s3)
+        addi t0, t0, C_HEAD_SIZE
+        add s3, s3, t0
+
+        blt s3, s2, print_heap_loop
+
+    li a0, 10
+    li a7, 11
+    ecall
+    add t6, sp, s4
+    sb x0, 0(t6)
+    mv a0, sp
+    li a7, 4
+    ecall
+    li a0, 10
+    li a7, 11
+    ecall
+
+
+    addi sp, sp, 104
+    lw s1, 0(sp)
+    lw s2, 4(sp)
+    lw s3, 8(sp)
+    lw s4, 12(sp)
+    lw s5, 16(sp)
+    addi sp, sp, 20
+    lw ra, 0(sp)
+    addi sp, sp, 4
+    ret
+    ')
+
+
 #a0: mem_addr
 free: 
     addi sp, sp, -8
     sw ra, 0(sp)
-    
 
     la t0, heap_start
     lw t1, heap_size
@@ -840,10 +1136,21 @@ free:
         slt t2, t0, a0    #current < mem_addr
         slt t3, a0, t6    #mem_addr < next
         and t3, t3, t2    #current < mem_addr < next
-        beq x0, t3, chunk_match
+        beq x0, t3, match_mem_addr
 
     chunk_match:
     
+    m4_ifdef(`DEBUG', `
+    .data
+        free_chunk_prompt: .string "Trying to free chunk at "
+    .text
+    sw t0, 4(sp)
+    mv a0, t0
+    la a1, free_chunk_prompt
+    call log_chunk
+    lw t0, 4(sp)
+
+    ')
     lw t1, C_OCCUPIED (t0)
     beq x0, t1, double_free #current.occupied == 0
     
@@ -863,8 +1170,19 @@ free:
     lw t0, C_SIZE (a0)
     addi a1, a0, C_HEAD_SIZE
     add a1, a1, t0
-    call merge_chunks
+    call merge_chunks m4_ifdef(`DEBUG', `
+    
+    lw a0, 4(sp)
+    la a1, freed_chunk
+    call log_chunk')
 
+      m4_ifdef(`DEBUG', `
+    addi sp, sp, -4
+    sw a0, 0(sp)
+    call print_heap
+    lw a0, 0(sp)
+    addi sp, sp, 4
+    ')
 
     lw ra, 0(sp)
     addi sp, sp, 8 
