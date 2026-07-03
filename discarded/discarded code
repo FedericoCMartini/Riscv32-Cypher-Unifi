@@ -15,7 +15,7 @@
 
 
 
-
+    # lui t0, 6 #funct3@
 
 la s5, encrypt_occurrence_jt
 
@@ -89,3 +89,15 @@ mul t3, t3, t4              #(len - 3) * -4 -> (3 - len) * 4
 
 
     #\sadd(\s+)\b([a-z][a-z]|[0-9])\b,((\s+)(\b([a-z][a-z]|[0-9])\b,+(\s+)x0)|(x0,(\s+\b([a-z][a-z]|[0-9])\b)))
+
+
+       
+
+    lw t5, 0(t6) #t6 will have i address
+    add t1, t0, t5 #t0 will have string address
+    lb t1, 0(t1)
+    bne x0, t1, block_mape_continue
+
+    # sb x0, 0(t6)
+    lb t1, 0(t0)
+    add t5, x0, x0 #resets i to 0
