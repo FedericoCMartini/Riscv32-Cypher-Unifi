@@ -99,13 +99,15 @@ REPLACE_SCRIPT=$(call invoke_m4, $(M4_PROLOGUE),)
 
 JUMP_TABLE_SCRIPT=$(SCRIPT_DIR)/bake_jump_tables.pl
 
-COMBINE_SCRIPT=$(call invoke_m4,$(COMBINE_MACROS),)
+COMBINE_SCRIPT=$(call invoke_m4,$(COMBINE_MACROS) "$(DEBUG)",)
+
+HALF_ASS=$(SCRIPT_DIR)/half_ass_bake.pl
 
 all: $(NAME)
 
 $(ASM_DIR)/$(NAME)$(ASM_PATTERN): $(INTERMEDIATE_SRC) $(BIN_DIR)/$(NAME)_i
-	$(JUMP_TABLE_SCRIPT) $^ $@
-	@rm -f $^
+	$(HALF_ASS) < $< > $@
+# 	@rm -f $^
 
 $(INTERMEDIATE_SRC): $(SRC) | $(ASM_DIR)
 	$(COMBINE_SCRIPT) $^ > $@
@@ -128,10 +130,15 @@ $(BIN_DIR)/% : $(ASM_DIR)/%$(ASM_PATTERN) | $(BIN_DIR)
 	riscv64-linux-gnu-gcc -mabi="ilp32" -march="rv32im" -nostdlib -static $^ -o $@
 
 diff:
-	$(foreach asm, $(wildcard $(ASM_DIR)/*$(ASM_PATTERN)), $(call source_diff,$(asm)))
+# 	$(foreach asm, $(wildcard $(ASM_DIR)/*$(ASM_PATTERN)), $(call source_diff,$(asm)))
+	@$(COMBINE_SCRIPT) $(SRC) | $(HALF_ASS) | diff $(ASM_DIR)/$(NAME)$(ASM_PATTERN) -
+
+debug: 
+	export DEBUG="m4_define(DEBUG, 1)" && make $(ASM_DIR)/$(NAME)$(ASM_PATTERN)
 
 clean:
 	rm -rf $(BINARIES:%=$(ASM_DIR)/%${ASM_PATTERN})
+	rm -f $(INTERMEDIATE_SRC) $(INTERMEDIATE_SRC:$(ASM_DIR)%.s=$(BIN_DIR)%)
 
 binclean:
 	rm -rf $(addprefix $(BIN_DIR)/, $(BINARIES))
@@ -157,7 +164,7 @@ testcompile:
 
 test: testcompile
 
-.PHONY: fclean binclean dirclean clean all diff test testcompile $(NAME) $(SIDE) %$(ASM_PATTERN) debug_m4_% trace_macro_% search
+.PHONY: fclean binclean dirclean clean all diff test testcompile $(NAME) $(SIDE) %$(ASM_PATTERN) debug_m4_% trace_macro_% search debug
 
 #.PRECIOUS: $(ASM_DIR)/%$(ASM_PATTERN)
 
