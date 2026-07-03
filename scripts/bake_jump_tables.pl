@@ -4,15 +4,16 @@
 #ARGV[1] -> BINARY
 #ARGV[2] -> DESTINATION
 
-my $table = `riscv64-linux-gnu-nm $ARGV[1]`;
+my $table = `riscv64-linux-gnu-nm $ARGV[0]`;
 my $file = $ARGV[0];
+my $section_start = hex($1) if $table =~ /([\da-f]*)\s*T\s*_start/;
 # my $pattern = '/([0-9a-f]*)(?{ $symbol_hex = $^N })\s*([td])(?{ $symbol_section = $^N })\s*(\w*)(?{ $symbol_name = $^N })/';
 # use re 'eval';
 
 # rename($file, $file . '.bak');
-open(IN, '<' . $file) or die $!;
-open(OUT, '>' . $ARGV[2]) or die $!;
-while(<IN>)
+# open(IN, '<' . $file) or die $!;
+# open(OUT, '>' . $ARGV[2]) or die $!;
+while(<STDIN>)
 {
     my $line = $_;
     if ($line =~ /.*_jump_table:/) {
@@ -21,16 +22,20 @@ while(<IN>)
         foreach (@symbols)
         {
             my $name = $_;
-            my ( $symbol_hex ) = $table =~ /([\da-f]*)\s*t\s*$name/;
+            my $symbol_address = hex($1) if $table =~ /([\da-f]*)\s*t\s*$name/;
             # my ( $symbol_hex, @rest ) = $table_line =~ /([0-9a-f]*)(?{ $symbol_hex = $^N })\s*([td])(?{ $symbol_section = $^N })\s*(\w*)(?{ $symbol_name = $^N })/; 
-            $line =~ s/$name/0x$symbol_hex/;
+            my $symbol_hex = sprintf '0x%x', $symbol_address - $section_start;
+
+            $line =~ s/$name/$symbol_hex/;
         }
         # system "echo " . $line;
     }
-    print OUT $line;
+    # unless ( $line =~ /#\s*$/) {
+        print <STDOUT> $line;
+    # }
 }
-close(IN);
-close(OUT);
+# close(IN);
+# close(OUT);
 
 # system "rm -f " . $file;
 # rename($file . '.bak', $file);
