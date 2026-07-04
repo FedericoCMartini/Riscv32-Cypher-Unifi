@@ -133,6 +133,8 @@ diff:
 # 	$(foreach asm, $(wildcard $(ASM_DIR)/*$(ASM_PATTERN)), $(call source_diff,$(asm)))
 	@$(COMBINE_SCRIPT) $(SRC) | $(HALF_ASS) | diff $(ASM_DIR)/$(NAME)$(ASM_PATTERN) -
 
+debug_diff:
+	export DEBUG="m4_define(DEBUG, 1)" && make diff
 debug: 
 	export DEBUG="m4_define(DEBUG, 1)" && make $(ASM_DIR)/$(NAME)$(ASM_PATTERN)
 

@@ -1,6 +1,6 @@
 #!/bin/perl
 
-my $table = `cat ./dump`; #you'll need to paste the addresses here from ripes disassemble
+my $table = `cat ./scripts/dump`; #you'll need to paste the addresses here from ripes disassemble
 
 while(<>)
 {
