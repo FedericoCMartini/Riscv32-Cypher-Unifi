@@ -488,7 +488,7 @@ fit_request_chunk_size:
 increase_request_chunk_size: #while loop that increases the size of a request
     slli t0, t0, 1 # request size <<= 1
     sw t0, 0(t1)
-    blt a0, t0, chunk_size_fits_request_size
+    blt t0, a0, increase_request_chunk_size
     
     chunk_size_fits_request_size:
     ret

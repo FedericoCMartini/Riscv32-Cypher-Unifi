@@ -90,18 +90,6 @@ _start:
     li a7, 10
     ecall #exit
 
-# m4_ifdef(`DEBUG', `
-.data
-    .align 2
-    not_implemented_str: .string "Not implemented\n"
-.text
-not_implemented:
-    mv t1, a0
-    la a0, not_implemented_str
-    li a7, 4
-    mv t1, a0
-    ret
-# ')
 # 
 # m4_define(MYCYPHER_STR, 0)
 # m4_define(SOSTK, 4)
@@ -1434,49 +1422,61 @@ restore_char_by_occurrence:
 
     tail pop_stack
 
-# m4_define(`OCPT_UR', 7)
+# m4_define(`OCPT_UR', 4)
 #a0: src #a1: dest
 #a0: cypher_text
 #s1: str
-#s2: max_num
-#s3: i
-#s4: dest
-#s5: next_group
-#s6: ' '
+#s2: dest
+#s3: next_group
+
 occurrence_construct_plain_text:
     li a6, OCPT_UR
     mv a7, ra
     call push_stack
 
     mv s1, a0 #store str
-    mv s2, x0 #max_num = 0
-    # mv s3, x0 #i = 0
-    mv s4, a1 #store dest
-    li s5, -1 #next_group = -1
-    li s6, SPACE # ' '
+    mv s2, a1 #store dest
+    
+    lb t0, 0(s1) #src[0]
+
+    addi a0, s1, 1 #&src[1] #start from 1 in case str[0] is ' '
+    li a1, SPACE
+    call strchr #search next ' '
+    addi s3, a0, 1 #restore previous offset
+
+    add t0, s1, s3
+    lb t0, 0(t0) #src[next_group]
+    beq x0, t0, construct_plain_text_end_iter
 
     occurrence_cpt_iter:
-        addi s3, s5, 1 #i = next_group + 1
-        add a0, s1, s3 #src + i
-        mv a1, s6   #' '
+
+        mv a0, s1  #src
+        mv a1, s2  #dest
+        mv a2, s3  #next_group -> relative index of next ' '
+        call restore_char_by_occurrence #restore...(src, dest, strchr(src, ' '))
+
         ocpt_search_next_group:
-        call strchr    #strchr(src + i, ' ')
-        add s5, s3, a0 #next_group += strchr(src + 1, ' ') #next space / str
-        slti t0, s5, 2 #if (next_group < 2 -> space as a non separating character was found)
-        bne x0, t0, ocpt_search_next_group
+        add s1, s1, s3 #src += next_group
+    
+        addi s1, s1, 1 # src += 1
+
+        li a1, SPACE   #' '
+        mv a0, s1 #src
+        call strchr    #strchr(src, ' ')
+        mv s3, a0 #next_group = strchr(src, ' ')
         
+        add t0, s1, s3 #&src[next_group]
+        lb t0, 0(t0) #src[next_group]
+        bne t0, x0, occurrence_cpt_iter  # while src[next_group] != 0
+    construct_plain_text_end_iter:
 
-        add a0, s1, s3  #src + i
-        mv a1, s4       #dest
-        sub a2, s5, s3  #next_group -> relative index
-        call restore_char_by_occurrence #restore...(src + i, dest, strchr(src + i, ' '))
+    mv a0, s1
+    mv a1, s2
+    mv a2, s3
 
-        add t0, s1, s5
-        lb t0, 0(t0)
-        bne x0, t0, occurrence_cpt_iter
+    call restore_char_by_occurrence
 
-    construct_plaintext_ret:
-    mv a0, s4
+    mv a0, s2
     tail pop_stack
 
 
@@ -1815,3 +1815,16 @@ cypher_iter:
     # restoring stack and return epilogue
     addi sp, sp, CYHPER_STACK
     tail pop_stack
+
+    # m4_ifdef(`DEBUG', `
+.data
+    .align 2
+    not_implemented_str: .string "Not implemented\n"
+.text
+not_implemented:
+    mv t1, a0
+    la a0, not_implemented_str
+    li a7, 4
+    mv t1, a0
+    ret
+# ')
