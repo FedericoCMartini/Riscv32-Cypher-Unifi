@@ -51,7 +51,7 @@
 # m4_define(`ALLOWED_CHARS_N', m4_eval(MAX_CHAR` - 'MIN_CHAR` + 1'))
 
 
-# m4_define(`CYPHER_DATA_SIZE', 20)
+# m4_define(`CYPHER_DATA_SIZE', 16)
 # m4_define(`MAIN_STACK', m4_eval(CYPHER_DATA_SIZE`+ 4'))
 
 .text
