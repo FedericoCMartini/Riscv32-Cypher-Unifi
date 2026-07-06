@@ -1339,7 +1339,7 @@ strchr:
 #s2: max_num
 #s3: i
 #s4: '-'
-occurrence_plaintext_size:
+occurrence_plain_text_size:
     li a6, OCCURRENCE_PT_UR
     mv a7, ra
     call push_stack
@@ -1491,7 +1491,7 @@ occurrence_decypher:
 
     mv s1, a0
     
-    call occurrence_plaintext_size
+    call occurrence_plain_text_size
     mv s2, a0 #store dest_len
 
     addi a0, a0, 1

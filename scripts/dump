@@ -946,7 +946,7 @@
     af4:        000f8513        addi x10 x31 0
     af8:        00008067        jalr x0 x1 0
 
-00000afc <occurrence_plaintext_size>:
+00000afc <occurrence_plain_text_size>:
     afc:        00500813        addi x16 x0 5
     b00:        00008893        addi x17 x1 0
     b04:        fffff097        auipc x1 0xfffff
