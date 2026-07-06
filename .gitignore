@@ -1,3 +1,2 @@
-alloc
-Cifrario
-asm/*.s
+bin/*
+asm/*
