@@ -667,10 +667,10 @@ char_map:
         sub a0, a0, t5 # c -= min_char
         sub a0, a0, a1 #c -= block_char
 
+        bgt a0, t5, char_map_ret
         reverse_mod:
-            bgt a0, t5, char_map_ret
             add a0, t6, a0 #if (c < min_char) c += 96
-        j reverse_mod
+            blt a0, t5, reverse_mod
 
     char_map_ret:
     ret

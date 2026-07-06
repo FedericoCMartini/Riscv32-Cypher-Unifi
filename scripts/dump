@@ -2,7 +2,7 @@
 00000000 <_start>:
     0:        10000517        auipc x10 0x10000
     4:        20250513        addi x10 x10 514
-    8:        fe810113        addi x2 x2 -24
+    8:        fec10113        addi x2 x2 -20
     c:        00010513        addi x10 x2 0
     10:        00000097        auipc x1 0x0 <_start>
     14:        058080e7        jalr x1 x1 88
@@ -12,7 +12,7 @@
     24:        00100613        addi x12 x0 1
     28:        00001097        auipc x1 0x1
     2c:        dd8080e7        jalr x1 x1 -552
-    30:        00a12a23        sw x10 20 x2
+    30:        00a12823        sw x10 16 x2
     34:        02a00663        beq x0 x10 44 <exit>
     38:        00010593        addi x11 x2 0
     3c:        00000613        addi x12 x0 0
@@ -20,10 +20,10 @@
     44:        dc0080e7        jalr x1 x1 -576
     48:        00001097        auipc x1 0x1
     4c:        3b4080e7        jalr x1 x1 948
-    50:        01412503        lw x10 20 x2
+    50:        01012503        lw x10 16 x2
     54:        00001097        auipc x1 0x1
     58:        3a8080e7        jalr x1 x1 936
-    5c:        01810113        addi x2 x2 24
+    5c:        01410113        addi x2 x2 20
 
 00000060 <exit>:
     60:        00a00893        addi x17 x0 10
@@ -476,11 +476,11 @@
 00000548 <reverse_map>:
     548:        41e50533        sub x10 x10 x30
     54c:        40b50533        sub x10 x10 x11
-
-00000550 <reverse_mod>:
     550:        00af4663        blt x30 x10 12 <char_map_ret>
+
+00000554 <reverse_mod>:
     554:        00af8533        add x10 x31 x10
-    558:        ff9ff06f        jal x0 -8 <reverse_mod>
+    558:        ffe54ee3        blt x10 x30 -4 <reverse_mod>
 
 0000055c <char_map_ret>:
     55c:        00008067        jalr x0 x1 0
@@ -1028,7 +1028,7 @@
     bec:        02000593        addi x11 x0 32
     bf0:        00000097        auipc x1 0x0 <_start>
     bf4:        ee0080e7        jalr x1 x1 -288
-    bf8:        fff50993        addi x19 x10 -1
+    bf8:        00150993        addi x19 x10 1
     bfc:        013482b3        add x5 x9 x19
     c00:        00028283        lb x5 0 x5
     c04:        04500063        beq x0 x5 64 <construct_plain_text_end_iter>
