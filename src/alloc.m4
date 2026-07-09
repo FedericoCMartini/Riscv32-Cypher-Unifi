@@ -31,8 +31,10 @@ m4_ifdef(`COMBINE', `', `
     malloc_stack_size: .word 16    
     heap_size: .word 1024
     max_chunk_size: .word 0x10000000
-    heap_init: .word 0
     request_size: .word 1024
+    min_size: .word 1024
+    last_chunk: .word 0
+
 .text
 
 m4_ifdef(`COMBINE', `.global malloc', `.global _start') 
@@ -353,13 +355,12 @@ best_fit_chunk_search:
     addi sp, sp, -8
     sw ra, 4(sp)
 
-    addi sp, sp, -24
+    addi sp, sp, -20
     sw s0, 0(sp)
     sw s1, 4(sp)
     sw s2, 8(sp)
     sw s3, 12(sp)
     sw s4, 16(sp)
-    sw s5, 20(sp)
 
     li s0, 28
     ##...
@@ -367,13 +368,10 @@ best_fit_chunk_search:
     la s1, heap_start #pointer to start of the heap
     mv s2, s1  #it's gonna be used as the pointer to the current chunk
     li s3, 0 #address of the smallest compatible free chunk
-    lw s4, heap_size
-    addi s4, s4, -C_HEAD_SIZE #first unusable address for chunk
-    add s4, s4, s1 #pointer to the last usable address in heap
-    li s5, 0
+    lw s4, last_chunk
     # lw a0, 4(sp) #loads requested_bytes
     
-    bge s2, s4, end_chunk_search #current chunk >= heap_start + (heap_size - header_size)
+    bge s2, s4, end_chunk_search #current chunk >= last_chunk
 
     chunk_search: #while loop, loops over whole heap
     
@@ -407,19 +405,17 @@ best_fit_chunk_search:
             mv s3, s2
     
         next_chunk:
-        mv s5, s2 #stores previous chunk on stack
         lw t6, C_SIZE (s2) #current.size
         add s2, s2, t6 # current_chunk += current.chunk_size
         addi s2, s2, C_HEAD_SIZE # current_chunk += chunk_header_size
     
-        blt s2, s4, chunk_search #current chunk >= heap_start + (heap_size - header_size)
+        blt s2, s4, chunk_search #current chunk >= last_chunk
     
     
     end_chunk_search:
     
     # bne x0, s3, allocate_chunk
     mv a0, s3
-    mv a1, s5
 
 
     lw s0, 0(sp)
@@ -427,14 +423,13 @@ best_fit_chunk_search:
     lw s2, 8(sp)
     lw s3, 12(sp)
     lw s4, 16(sp)
-    lw s5, 20(sp)
 
-    addi sp, sp, 24
+    addi sp, sp, 20
     lw ra, 4(sp)
     addi sp, sp, 8
     ret
 
-#ret_val: a0: best_fit, a1: last_chunk
+#ret_val: a0: best_fit
 
 m4_ifdef(`DEBUG', `
 .data
@@ -480,11 +475,13 @@ m4_ifdef(`DEBUG', `
     ecall #exit
 ')
 
+#a0: size
 fit_request_chunk_size:
+    addi a0, a0, C_HEAD_SIZE #adding header_size to request_body
     la t1, request_size
     lw t0, 0(t1)
 
-    blt a0, t0, chunk_size_fits_request_size
+    blt a0, t0, chunk_size_fits_request_size #size < request_size
 increase_request_chunk_size: #while loop that increases the size of a request
     slli t0, t0, 1 # request size <<= 1
     sw t0, 0(t1)
@@ -577,19 +574,20 @@ new_chunk:
         j new_chunk_return
 
     check_chunk_after_new:
+        lw t1, last_chunk
+        bge a0, t1, nc_update_last_chunk 
+        update_next_link: #if chunk < last_chunk
+            lw t0, C_SIZE (a0)
+            add t0, t0, a0 #current + size
+            addi t0, t0, C_HEAD_SIZE #next = current.size + sizeof header
+            sw a0, C_PREV (t0) #next.prev = current 
 
-        lw t0, C_SIZE (a0)
-        add t0, t0, a0 #current + size
-        addi t0, t0, C_HEAD_SIZE #next = current.size + sizeof header
-
-        la t1, heap_start
-        lw t2, heap_size
-
-        add t1, t2, t1 #heap_outer_bound
-
-        bgt t0, t1, new_chunk_return #if next > heap outer bound return
-
-        sw a0, C_PREV (t0) #next.prev = current 
+            j nc_check_after_endif
+        nc_update_last_chunk: #else
+            la t1, last_chunk
+            sw a0, 0(t1)
+        
+        nc_check_after_endif:
 
     new_chunk_return:
     lw a0, 4(sp)
@@ -683,12 +681,13 @@ malloc:
     
     bne x0, a0, allocate_chunk
                                 #if best_fit(size) == null
-    # lw a0, 4(sp) 
-    mv a0, a1 #last chunk
     call request_memory          #request_memory(last_chunk)
     
     beq a0, x0, failed_malloc
     
+    la t0, free_count
+    sw x0, 0(t0) #reset free counter
+
 allocate_chunk: 
     sw a0, 12(sp) #save chunk
     lw a1, 4(sp) #request_size
@@ -724,16 +723,13 @@ malloc_return:
     
     
 heap_initialize:
-    lw t0, heap_init
-    bne t0, x0, heap_is_initialized # if (chunks[0].size != 0) return;
+    lw t0, last_chunk
+    bne t0, x0, heap_is_initialized # if (last_chunk != 0) return;
     
     
     addi sp, sp, -4
     sw ra, 0(sp)
     
-    la t0, heap_init
-    li t1, 1
-    sw t1, 0(t0)
 
     lw a0, heap_size
     call four_align_size
@@ -746,6 +742,10 @@ heap_initialize:
     mv a0, x0
     mv a1, x0
     call new_chunk
+
+    la t0, last_chunk
+    sw a0, 0(t0)
+
 
     lw ra, 0(sp)
     addi sp, sp, 4
@@ -764,14 +764,13 @@ merge_chunks:
     xor a1, a0, a1 #swap
     
     not_swap_mc:
-    lw t6, heap_size
     la t5, heap_start
-    add t6, t6, t5 #heap_end = heap_start + heap_size
-    addi t5, t5, -1 #heap_start - 1 
-    slt t0, t5, a0 #heap_start <= heap_start
-    slt t1, a1, t6 #right < heap_end
-    and t0, t0, t1 #(heap_start <= left && right < heap_end) 
-    beq t0, x0, failed_merge #a0 points to before the heap or a1 points to after the heap
+    lw t6, last_chunk
+
+    slt t0, a0, t5 #left < heap_start
+    slt t1, t6, a1 #last_chunk < right
+    or t0, t0, t1 #(left < heap_start || heap_end < right) 
+    bne t0, x0, failed_merge #a0 points to before the heap or a1 points to after the heap
 
     lw t0, C_OCCUPIED (a0) #left_chunk.occupied
     lw t1, C_OCCUPIED (a1) #right_chunk.occupied
@@ -812,12 +811,17 @@ merge_chunks:
     addi t5, t5, C_HEAD_SIZE #right.next = right + right_size + header_size
 
     #possibly test if right == right.next.prev?
-    ble t6, t5, no_next_to_link # (heap_end <= right.next)
+    ble t6, t5, mc_update_last_chunk # (last_chunk <= right.next)
     link_next_chunk:
-        
-        sw a0, C_PREV (t5) #right.next.prev = left
 
-    no_next_to_link:
+        sw a0, C_PREV (t5) #right.next.prev = left
+        j mc_endif
+    mc_update_last_chunk:
+
+        la t0, last_chunk
+        sw a0, 0(t0)
+
+    mc_endif:
     
     lw t2, C_SIZE (a0) #left.size 
     addi t0, t1, C_HEAD_SIZE #header_size + right_size
@@ -950,33 +954,22 @@ make_newly_requested_memory_chunk:
     sw t5, C_SIZE (t1) #new_chunk.size = &new_chunk - &heap_start - header_size
     ret
 
-#a0 : last_chunk
-request_memory:
-    
-    addi sp, sp, -20
+request_memory: 
+    addi sp, sp, -12
     sw ra, 0(sp)
     sw a0, 4(sp)
-    
-    lw a0, C_OCCUPIED (a0) #last_chunk.occupied
-    sw a0, 16(sp) #save it as a flag
-    
+
+    lw a0, last_chunk    
     lw t1, request_size
     lw t2, heap_size
-    li t3, C_HEAD_SIZE
+
+    add t0, t2, t1 #new_heap_size = heap_size + request_size
     
-    lw t4, 16(sp) #last_chunk.occupied
-    mul t3, t3, t4 # adds header size only if the last chunk was occupied (request_size += header_size * last_chunk.occupied)
-    add t3, t3, t1 # -> size_of_header + request_size
-    sw t3, 12(sp) #requested bytes (also requests space for header)
-    add t2, t2, t3 # new_heap_size = heap_size + header_size + request_size
-    
-    mv a0, t2
-    call four_align_size
-    sw a0, 8(sp)
-    
+    sw t0, 8(sp) #store new size
+
     set_new_program_break:
-    la t0, heap_start
-    add a0, t0, a0 #heap start + new_heap_size
+    la t1, heap_start
+    add a0, t1, t0 #heap start + new_heap_size
 
     li a7, 214 #brk syscall
     
@@ -987,38 +980,38 @@ request_memory:
     
     extend_heap:
     la t0, heap_size
-    lw t1, 8(sp) 
+    lw t1, 8(sp)
     sw t1, 0(t0) #heap_size = new_heap_size
 
-    lw t0, 16(sp) #last_chunk.occupied
+    lw a0, 4(sp) #last_chunk
+    lw t0, C_OCCUPIED (a0) # last.occupied
     beq x0, t0, extend_last_chunk #if !last_chunk.occupied
     create_new_chunk:
-    lw a0, 4(sp) #last_chunk
+    # lw a0, 4(sp) #last_chunk
     mv a1, x0
-    lw a2, 12(sp) # how much the program memory was extended
-    call new_chunk
-
+    lw a2, request_size # how much the program memory was extended
+    call new_chunk #new chunk(last, 0, request_size)
         
-    #mv a0, t1
     j request_memory_return
     
 extend_last_chunk:    
-    lw t0, 4(sp) #last chunk
-    lw t1, C_SIZE (t0) #last chunk.size
-    lw t2, 12(sp)# requested bytes
+    lw a0, 4(sp) #last chunk
+    lw t1, C_SIZE (a0) #last chunk.size
+    lw t2, request_size# requested bytes
     
     add t1, t1, t2
-    sw t1, C_SIZE (t0) #chunk_size += requested_bytes
-    mv a0, t0
+    sw t1, C_SIZE (a0) #chunk_size += requested_bytes
     j request_memory_return
     
-   
 brk_fail:
     li a0, 0
     
 request_memory_return:
+    la t0, last_chunk
+    sw a0, 0(t0) #last_chunk = last
+
     lw ra, 0(sp)
-    addi sp, sp, 20
+    addi sp, sp, 12
     ret
     
     
@@ -1107,7 +1100,7 @@ print_heap:
 
 
 #a0: mem_addr
-free: 
+free:
     addi sp, sp, -8
     sw ra, 0(sp)
 
@@ -1164,13 +1157,18 @@ free:
 
 
     bne x0, a0, merge_right
-        lw a0, 4(sp)
+    lw a0, 4(sp)
 
     merge_right:
+    lw t0, last_chunk
+    beq t0, a0, shrink_heap
+
     lw t0, C_SIZE (a0)
     addi a1, a0, C_HEAD_SIZE
     add a1, a1, t0
-    call merge_chunks m4_ifdef(`DEBUG', `
+    call merge_chunks
+
+     m4_ifdef(`DEBUG', `
     
     lw a0, 4(sp)
     la a1, freed_chunk
@@ -1183,6 +1181,13 @@ free:
     lw a0, 0(sp)
     addi sp, sp, 4
     ')
+
+    lw t0, last_chunk
+    bne t0, a0, free_end
+    check_shrink_heap: #if chunk == last_chunk
+       call shrink_heap
+
+    free_end:
 
     lw ra, 0(sp)
     addi sp, sp, 8 
@@ -1211,7 +1216,93 @@ free:
         li a2, 18 #write (2, "Out of range free\n", 19);
         ecall
         j exit
+
+shrink_heap:
+    addi sp, sp, -8
+    sw ra, 0(sp)
+
+    lw t5, heap_size
+    lw t6, min_size
+
+    ble t5, t6, shrink_heap_return #no need to shrink if (size <= min_size) 
+
+    lw t0, request_size
+    lw t1, C_SIZE (a0) #chunk.size
+
+    lw t4, heap_start
+    lw a0, last_chunk
+    
+    sub t3, a0, t4 #size_without = last_chunk - heap_start 
+    wipe_heap: #if last_chunk == heap_start
+    bgt t3, x0, resize_to_min
+
+        la t0, heap_size #heap_size = min_size
+        sw t6, 0(t0)
+        addi t6, t6, -C_HEAD_SIZE 
+        sw t6, C_SIZE (a0) #heap_start.size = min_size - header_size
+    j shrink_endif
+    resize_to_min: #if (last_chunk - heap_start < size)
+    bge t3, t6, delete_last #last_chunk - heap_start <= min_size
         
+        sub t0, t6, t3 #min_size - (last_chunk - heap_start)
+        addi t0, t0, -C_HEAD_SIZE #min_size - (size_without) - header_size
+
+        beq x0, t0, pad_previous
+
+        sw t0, C_SIZE (a0) #last_chunk.size 
+
+    j shrink_heap_return
+    pad_previous:
+        lw t1, C_PREV (a0) #last.prev
+        lw t2, C_SIZE (t1) #last.prev.size
+        addi t2, t2, C_HEAD_SIZE
+        sw t2, C_SIZE (t1) #last.prev.size += C_HEAD_SIZE
+
+        mv a0, t1
+    j shrink_endif
+    delete_last: #if size_without >= min_size
+    bgt t3, t6, 
+    la t0, last_chunk
+    lw t1, C_PREV (a0)
+
+    sw t1, 0(t0) #last_chunk = last_chunk.prev
+
+    j shrink_heap_return
+
+
+    j shrink_heap_return
+    shrink_endif:
+
+
+    sub t4, t4, t0 #heap_size - request_size
+
+    slt t6, t0, t1 free_end #reqeust_size < chunk.size
+        
+    slt t5, t5, t4 #heap_size - request_size >= min_size
+    and t6, t6, t5 #request_size < chunk.size && heap_size - request_size <= min_size
+
+
+    lw a0, last_chunk
+    sw a0, 4(sp)
+     
+    lw t0, C_SIZE (a0) #last.size
+    lw t1, reqeust_size
+    lw t6, min_size_minus_one
+    sub t5, a0, t5 #size_without = last_chunk - heap_start
+    
+    ble t5, t6, shrink_last_chunk
+ 
+    shrink_last_chunk:
+        sub t0, 
+
+    shrink_heap_return:
+    lw ra, 0(sp)
+    addi sp, sp, 8
+    ret
+
+
+ 
+
 .bss
     .align 2
     heap_start: .zero 1024 #should be last
